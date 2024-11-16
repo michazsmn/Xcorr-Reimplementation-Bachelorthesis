@@ -1,5 +1,10 @@
 \documentclass{article}
+\usepackage{biblatex}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{csvsimple}
+\usepackage{tabularray}
+
+\addbibresource{bibliography.bib}
 
 \title{Xcorr Reimplementation Bachelorthesis}
 \author{Michael zusmanovskiy}
@@ -53,7 +58,7 @@
 that deals with the problem of identifying protein/peptide identification can fall into the category of database searching,
 where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
-Comet is an open source proteomics database search algorithm
+Comet is an open source proteomics database search algorithm \cite{comet}
 
 
 \subsection{Goals}
@@ -66,5 +71,6 @@ Comet is an open source proteomics database search algorithm
 \subsection{Impact \& Conclusion}
 
 
+\printbibliography
 
 \end{document}
