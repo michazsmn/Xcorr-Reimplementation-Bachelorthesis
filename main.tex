@@ -61,10 +61,16 @@ constructs a spectrum from the peptide which is assumed to be the peptide
 of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
 
-Peptide prediction algorithms are able to predict \(MS^2\) peaks E.g. MS2PIP\cite{ms2pip}.
+Peptide prediction algorithms E.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
+MS2PIP is a command line tool which also exposes a python api.
+
+This work wants to combine the comet cross-correlation scoring algorithm
+with the peptide intensity prediction of MS2PIP to create a accurate identification of peptides.
 
 
 \subsection{Goals}
+As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet.
+The goal of this work is to find a new method of peptide identification.
 
 \section{Methods}
 
