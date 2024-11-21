@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[12pt]{article}
 \usepackage{biblatex}
 \usepackage{graphicx} % Required for inserting images
 
@@ -51,12 +51,14 @@
 
 
 \section{Introduction}
-\subsection{Motivation}
-\(MS^2\) Database searching is a method for peptide identification within a Mass Spectrometry Scan. Proteomics software
+\subsection{Fundamentals}
+Mass spectrometry is a method for finding out the components of a chemical substance sample and analysis of its molecules. Mass spectrometers exist in various variants e. G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc..
+\(MS^2\) Database searching is used for peptide identification within a Mass Spectrometry Scan. Proteomics software
 that deals with the problem of identifying protein/peptide identification can fall into the category of database searching,
 where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
-Comet is an open source proteomics database search algorithm/tool for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}.The algorithm 
+\subsection{Motivation}
+Comet is an open source proteomics database search algorithm/tool for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}. The algorithm 
 constructs a spectrum from the peptide which is assumed to be the peptide
 of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
