@@ -1,8 +1,10 @@
 \documentclass[12pt]{article}
-\usepackage{biblatex}
+\usepackage[sorting=none]{biblatex}
 \usepackage{graphicx} % Required for inserting images
 
+
 \addbibresource{bibliography.bib}
+
 
 \title{Xcorr Reimplementation Bachelorthesis}
 \author{Michael zusmanovskiy}
@@ -52,9 +54,9 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry is a method for finding out the components of a chemical substance sample and analysis of its molecules. Before analysis, the sample has to be prepared, this is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc. however regardless of their type they usually follow the same steps \cite{mass-specrometer}: 
+Mass Spectrometry is a method for finding out the components of a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. Before analysis, the sample has to be prepared, this is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
 \begin{enumerate}
-\item Ionization
+\item After the sample preparation, 
 \end{enumerate} 
 \(MS^2\) Database searching is used for peptide identification within a Mass Spectrometry Scan. Proteomics software
 that deals with the problem of identifying protein/peptide identification can fall into the category of database searching,
