@@ -54,18 +54,23 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry is a method for finding out the components of a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. Before analysis, the sample has to be prepared, this is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
+Mass Spectrometry is a method for finding out the components of a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. Before analysis, the sample has to be prepared, this is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
+
 \begin{enumerate}
-\item After the sample preparation, 
+\item After the sample preparation, the sample is ionized, meaning that ions are generated. A common approach in gas chromatography is electron bombardement where the molecules are passed through a ionization chamber with accelerated electrons. The electrons collide with the molecules, break their bonds and turn them into fragments. A different approach in liquid
+chromatography is electrospray chromatography where the liquidified sample is sprayed into an electric field where it evaporates.
+\item The produced ions are sorted by their mass-to-charge ratios by a mass analyser. How this is done is dependant on the machine that is used.
+\item After the sorting of the ions a detection system determines the relative abundances for each observed mass-to-charge (m/z) value.
 \end{enumerate} 
-\(MS^2\) Database searching is used for peptide identification within a Mass Spectrometry Scan. Proteomics software
-that deals with the problem of identifying protein/peptide identification can fall into the category of database searching,
-where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
+
+The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it.
+
+Since every peptide sequence produces its own unique mass spectrum, it can be used as its unique fingerprint to identify it in a sample. MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
 \subsection{Motivation}
 Comet is an open source proteomics database search algorithm/tool for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}. The algorithm 
 constructs a spectrum from the peptide which is assumed to be the peptide
-of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
+of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
 
 Peptide prediction algorithms E.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
