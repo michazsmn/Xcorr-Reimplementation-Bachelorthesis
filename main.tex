@@ -1,6 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage[sorting=none]{biblatex}
-\usepackage{graphicx} % Required for inserting images
+\usepackage{graphicx} 
+\usepackage{caption}
 
 
 \addbibresource{bibliography.bib}
@@ -63,17 +64,21 @@ chromatography is electrospray chromatography where the liquidified sample is sp
 \item After the sorting of the ions a detection system determines the relative abundances for each observed mass-to-charge (m/z) value.
 \end{enumerate} 
 
-The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it.
+The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it. Since every peptide sequence produces its own unique mass spectrum, it can be used as its unique fingerprint to identify it in a sample. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/tandem-spectrum.png}
+    \caption{Mass spectrum. Source: https://www.weddslist.com/ms/tandem.html}
+    \label{fig:tandem-spectrum}
+\end{figure}
 
-Since every peptide sequence produces its own unique mass spectrum, it can be used as its unique fingerprint to identify it in a sample. MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
+MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
 \subsection{Motivation}
-Comet is an open source proteomics database search algorithm/tool for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}. The algorithm 
-constructs a spectrum from the peptide which is assumed to be the peptide
-of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
+Comet is an open source proteomics database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
 
-Peptide prediction algorithms E.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
+Peptide prediction algorithms e.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
 MS2PIP is a command line tool which also exposes a python api.
 
 This work wants to combine the comet cross-correlation scoring algorithm
