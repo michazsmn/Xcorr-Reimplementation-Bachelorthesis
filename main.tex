@@ -75,14 +75,14 @@ The output is a mass spectrum which is a plot that yields the m/z values on the 
 MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
 \subsection{Motivation}
-Comet is an open source proteomics database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington in 2012 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}.  Since it is not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
+Comet is an open source proteomics database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
 
 Peptide prediction algorithms e.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
 MS2PIP is a command line tool which also exposes a python api.
 
 This work wants to combine the comet cross-correlation scoring algorithm
-with the peptide intensity prediction of MS2PIP to create a accurate identification of peptides.
+with the peptide intensity prediction of MS2PIP to create an even more accurate identification of peptides.
 
 
 \subsection{Goals}
@@ -91,7 +91,9 @@ The goal of this work is to check whether replacing comets theoretical spectrum 
 
 \section{Methods and Structure}
 \subsection{Realizing the Xcorr algorithm in Python}
-For this work, Python is used as the Programming language. 
+For this work, Python is used as the Programming language. Before implementing, it is first necessary to have human genome data to work with. For this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzml format. The search is done against data of the human genome in the fasta format.
+
+
 
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
