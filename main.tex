@@ -18,19 +18,24 @@
         \LARGE
         Applied Computer Science
 
-        \vspace{1.5cm}
+        \vspace{1cm}
+        
+        \LARGE
+        Bachelorthesis
+
+        \vspace{1cm}
             
         \LARGE
         \textbf{Re-implementation of the X-Corr algorithm in Python and improvement of scoring using predicted spectra}
             
-        \vspace{1.5cm}
+        \vspace{1cm}
 
         \LARGE
         \textbf{Author}
         
         Michael Zusmanovskiy, 108019231182
         
-        \vspace{1.5cm}
+        \vspace{1cm}
         
         \LARGE
         \textbf{Supervisors}
@@ -41,9 +46,6 @@
             
         \vfill
             
-
-        \vspace{0.8cm}
-
         \Large
         Ruhr-Universität Bochum\\
         
@@ -91,7 +93,8 @@ The goal of this work is to check whether replacing comets theoretical spectrum 
 
 \section{Methods and Structure}
 \subsection{Realizing the Xcorr algorithm in Python}
-For this work, Python is used as the Programming language. Before implementing, it is first necessary to have human genome data to work with. For this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzml format. The search is done against data of the human genome in the fasta format.
+For this work, Python is used as the Programming language. Before implementing, it is first necessary to have human genome data to work with. For this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzml format. The search is done against data of the human genome in the fasta format which serves as the "database".
+Acessing these files was done with the help of the pyteomics package \cite{pyteomics, pyteomics-five-years}.
 
 
 
