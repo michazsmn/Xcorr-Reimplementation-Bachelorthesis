@@ -109,10 +109,7 @@ For this work, Python is used as the Programming language. Before implementing, 
 Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass.
 
 \subsubsection{CLI}
-To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively.
-
-
-
+To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively. The CLI provides additionally three options: The "--p" flag followed by an integer sets the amount of processes to use for multiprocessed identification. If this flag is not set, the program works with a default value of cpu\_count()-2, where cpu\_count() returns the amount of processes the used machine can provide. The "--s" flag followed by an integer specifies the amount of spectra that the processes load and buffer at a time. The default amount is 5000. If the "--ps" flag is set, the program will work with the predicted spectra instead of the theoretical ones.
 
 
 
