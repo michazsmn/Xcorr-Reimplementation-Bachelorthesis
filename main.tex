@@ -2,8 +2,8 @@
 \usepackage[sorting=none]{biblatex}
 \usepackage{graphicx} 
 \usepackage[font=scriptsize,labelfont=bf]{caption}
-\usepackage[a4paper, total={6in, 8in}]{geometry}
-
+\usepackage[a4paper, total={5.5in, 8.5in}]{geometry}
+\usepackage{cleveref}
 \addbibresource{bibliography.bib}
 
 
@@ -62,7 +62,8 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry (MS) is a method for finding out the components of a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. Before analysis, the sample has to be prepared, this is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
+Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a  chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for genomics research or diabetes research \cite{ms-diabetes}.
+Before mass spectrometry can be performed, the sample has to be prepared meaning that it is turned into a state that is a valid input for the mass spectrometer. This is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
 
 \begin{enumerate}
 \item After the sample preparation, the sample is ionized, meaning that ions are generated. A common approach in gas chromatography is electron bombardement where the molecules are passed through a ionization chamber with accelerated electrons. The electrons collide with the molecules, break their bonds and turn them into fragments. A different approach in liquid
@@ -71,7 +72,7 @@ chromatography is electrospray chromatography where the liquidified sample is sp
 \item After the sorting of the ions a detection system determines the relative abundances for each observed mass-to-charge (m/z) value.
 \end{enumerate} 
 
-The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it. 
+The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The m/z value is the mass of a particle divided by its electrical charge. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it, see \cref{fig:peptide-example}. 
 
 Tandem mass spectrometry (MS/MS or \(MS^2\)) is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. 
 
@@ -79,18 +80,18 @@ Since every peptide sequence produces its own unique mass spectrum, it can be us
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{figs/peptide.png}
-    \caption{MS spectrum of the peptide LAADEDDDDDDEEDDDEDDDDDDFDDEEAEEKAPVK}
-    \label{fig:peptide}
+    \caption{MS spectrum of the peptide "LAADEDDDDDDEEDDDEDDDDDDFDDEEAEEKAPVK" retireved from the human genome}
+    \label{fig:peptide-example}
 \end{figure}
 
-\(MS^2\) searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
+Tandem MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database, and de novo searching, where peptides are deduced without a database.
 
 \subsection{Motivation}
-Comet is an open source proteomics \(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
+Comet is an open source proteomics Tandem MS/\(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
 to evaluate the fitting of the found peptide.
 
-Peptide prediction algorithms e.g. MS2PIP\cite{ms2pip} are able to predict \(MS^2\) peaks with the help of various machine learning models.
-MS2PIP is a command line tool which also exposes a python api.
+Peptide prediction algorithms are able to predict \(MS^2\) peaks with the help of various machine learning models.
+MS2PIP\cite{ms2pip} is a command line peptide intensity prediction tool which also exposes a python API.
 
 This work wants to combine the comet cross-correlation scoring algorithm
 with the peptide intensity prediction of MS2PIP to create an even more accurate identification of peptides.
@@ -103,7 +104,15 @@ The goal of this work is to check whether replacing comets theoretical spectrum 
 \section{Methods and Structure}
 \subsection{Realizing the Xcorr algorithm in Python}
 For this work, Python is used as the Programming language. Before implementing, it is first necessary to have human genome data to work with. For this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzml format which is a xml based format for storing mass spec scan data. The search is done against data of the human genome in the fasta format which stores protein primary structure and serves as the "database".
-Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data.
+
+\subsubsection{Reading in Spectrum data}
+Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass.
+
+\subsubsection{CLI}
+To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively.
+
+
+
 
 
 
