@@ -4,8 +4,9 @@
 \usepackage[font=scriptsize,labelfont=bf]{caption}
 \usepackage[a4paper, total={5.5in, 8.5in}]{geometry}
 \usepackage{cleveref}
-\addbibresource{bibliography.bib}
+\usepackage{wrapfig}
 
+\addbibresource{bibliography.bib}
 
 \title{Xcorr Reimplementation Bachelorthesis}
 \author{Michael zusmanovskiy}
@@ -72,7 +73,7 @@ chromatography is electrospray chromatography where the liquidified sample is sp
 \item After the sorting of the ions a detection system determines the relative abundances for each observed mass-to-charge (m/z) value.
 \end{enumerate} 
 
-The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The m/z value is the mass of a particle divided by its electrical charge. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it, see \cref{fig:peptide-example}. 
+The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The m/z value is the mass of a particle divided by its electrical charge. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it [\cref{fig:peptide-example}]. 
 
 Tandem mass spectrometry (MS/MS or \(MS^2\)) is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. 
 
@@ -106,13 +107,22 @@ The goal of this work is to check whether replacing comets theoretical spectrum 
 For this work, Python is used as the Programming language. Before implementing, it is first necessary to have human genome data to work with. For this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzml format which is a xml based format for storing mass spec scan data. The search is done against data of the human genome in the fasta format which stores protein primary structure and serves as the "database".
 
 \subsubsection{Reading in Spectrum data}
-Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass.
+Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the fasta database file. In the following this list will be referred to as the "peptide index". While iterating through the fasta database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. This is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regulal expression for this is "(?<=[KR])(?!P)". In the human body peptides that are too large for the small intestine are cleaved by the enzyme trypsin, and are called "tryptic peptides". For every peptide that has been cleaved from a sequence from the fasta, its monoisotopic mass is calculated. This mass is added to a dictionary as the key if it does not exit yet, and the according peptide as the value. The static modification Carbamidomethylation of Cysteine (C) as well as the Oxidation of Methionine (M) have been taken into account. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to list, which is sorted by the mass in ascending order [\cref{fig:peptindex}]. 
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/peptindex.png} 
+\caption{Peptide index list generated from the fasta database file}
+\label{fig:peptindex}
+\end{wrapfigure}
+
+\subsubsection{Identification}
+After generating the peptide index list, a pool of processes is created. A manager from the python multiprocessing library was used for this matter. 
 
 \subsubsection{CLI}
 To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively. The CLI provides additionally three options: The "--p" flag followed by an integer sets the amount of processes to use for multiprocessed identification. If this flag is not set, the program works with a default value of cpu\_count()-2, where cpu\_count() returns the amount of processes the used machine can provide. The "--s" flag followed by an integer specifies the amount of spectra that the processes load and buffer at a time. The default amount is 5000. If the "--ps" flag is set, the program will work with the predicted spectra instead of the theoretical ones.
 
 
-
+\section{Results}
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
 \subsection{Future Work}
