@@ -141,7 +141,20 @@ The program now proceeds with generating fragment m/z values of the peptides fro
 
 \subsection{Xcorr scoring}
 After the sample spectrum and the theoretical spectrum have been binned, they have to be brought to the same length. This is achieved by filling up the binned theoretical spectrum with zeros in case it is smaller than the binned sample spectrum. If the binned sample array is smaller, it is simply cut to the right length. 
-The correlation is calculated by the correlate function from the numpy library. In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3250 + 3250 + 1 = 7501, a shift of 3250 bins in each direction and the dotproduct at zero offset. The xcorr score is computed by subtracting the "background similarity" from the "similarity" at zero offset.
+The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dotproduct at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
+\caption{Preprocessing the binned arrays before correlation}
+\label{fig:corr}
+\end{wrapfigure}
+
+\subsection{Output}
+The process returns and adds all identified results for a peptide from the sample mzml file to a result list. When the buffer is fully consumed, all results are printed to a tsv file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precuror ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the plain unmodified peptide.
+
+\subsection{MS2PIP}
+
+
 
 \subsection{CLI}
 To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively. 
