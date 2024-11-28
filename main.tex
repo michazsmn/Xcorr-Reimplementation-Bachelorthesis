@@ -89,11 +89,18 @@ Tandem MS searching is used for peptide identification within a mass spectrometr
 
 \subsection{Motivation}
 \subsubsection{Comet Xcorr in detail}
-Comet is an open source proteomics Tandem MS/\(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. The tool computes multiple scores that evaluate how close a sample peptide is to the peptide it is compared to. One of these scores is the "xcorr". To calculate the xcorr value the algorithm constructs a spectrum from the peptide which is assumed to be the peptide of the sample by generating all possible m/z values from the 'b' and 'y' series of the peptide \cite{comet-first-paper}. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, they are assigned the intensity of 1 \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. With the sample spectrum and the constructed "theoretical" spectrum, a correlation based score is computed
-to evaluate the fitting of the found peptide.
+Comet is an open source proteomics Tandem MS/\(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. For the peptide identification the tool computes multiple scores that evaluate how close a sample peptide is to a peptide from a genome database that it is compared to. One of these scores is the "Xcorr", which will be the focus of this thesis. 
 
-Peptide prediction algorithms are able to predict \(MS^2\) peaks with the help of various machine learning models.
-MS2PIP\cite{ms2pip} is a command line peptide intensity prediction tool which also exposes a python API.
+To calculate the Xcorr value and other scores the algorithm first performs a filtering of peptides from a given database. If a sample spectrum has a precursor ion mass of e.g 1500 dalton, the algorithm considers only those peptides from the database that have a mass close to it, e.g with a tolerance of  $\pm$0.005 dalton, meaning that a peptide with a mass of e.g. 1500.001 would be selected for further analysis. All database peptides outside of this mass boundary are discarded.
+
+For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the "theoretical spectrum". \cite{comet-first-paper}. 
+
+In the next step comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by binning. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 1 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. 
+
+For the xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+
+\subsubsection{Peptide intensity prediction}
+Peptide prediction algorithms are able to predict \(MS^2\) peaks with the help of various machine learning models.MS2PIP\cite{ms2pip} is a command line peptide intensity prediction tool which also exposes a python API.
 
 This work wants to combine the comet cross-correlation scoring algorithm
 with the peptide intensity prediction of MS2PIP to create an even more accurate identification of peptides.
@@ -101,6 +108,7 @@ with the peptide intensity prediction of MS2PIP to create an even more accurate 
 
 \subsubsection{Goals}
 As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet.
+
 The goal of this work is to check whether replacing comets theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new method of peptide identification.
 
 \section{Implementation of the Xcorr algorithm in Python}
@@ -141,13 +149,13 @@ The program now proceeds with generating fragment m/z values of the peptides fro
 
 \subsection{Xcorr scoring}
 After the sample spectrum and the theoretical spectrum have been binned, they have to be brought to the same length. This is achieved by filling up the binned theoretical spectrum with zeros in case it is smaller than the binned sample spectrum. If the binned sample array is smaller, it is simply cut to the right length. 
-The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dotproduct at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
-
 \begin{wrapfigure}{r}{0.5\textwidth}
 \includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
 \caption{Preprocessing the binned arrays before correlation}
 \label{fig:corr}
 \end{wrapfigure}
+The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dotproduct at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
+
 
 \subsection{Output}
 The process returns and adds all identified results for a peptide from the sample mzml file to a result list. When the buffer is fully consumed, all results are printed to a tsv file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precuror ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the plain unmodified peptide.
@@ -170,6 +178,8 @@ The user can get a help-text by typing "cli.py --help" in the terminal, which co
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
 \subsection{Future Work}
+Other scores
+False discovery rates
 Sparse array
 More modifications
 More parameters
