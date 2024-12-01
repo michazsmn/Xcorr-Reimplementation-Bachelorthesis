@@ -75,7 +75,7 @@ chromatography is electrospray chromatography where the liquidified sample is sp
 
 The output is a mass spectrum which is a plot that yields the m/z values on the x-axis and the abundances on the y-axis. The m/z value is the mass of a particle divided by its electrical charge. The abundances are normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it [\cref{fig:peptide-example}]. 
 
-Tandem mass spectrometry (MS/MS or \(MS^2\)) can be understood as an extension of mass spectrometry. It is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. 
+Tandem mass spectrometry (MS/MS or \(MS^2\)) can be understood as an extension of mass spectrometry. It is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. This is realized by connecting two analyzers behind each other in "tandem", which are connected by a collision cell. In the first MS run ions are analyzed, those are the so called "precursor ions" and some of then are selected by their m/z value. The selected precursor ions are then even further fragmented into smaller peptide chains by an inert gas, after which they are let into the second spectrometer \cite{tandem-mass-spec-deutsch, tandem-mass-spec-yt}.
 
 Since every peptide sequence produces its own unique mass spectrum, it can be used as its unique fingerprint to identify it in a sample. 
 \begin{figure}[ht]
@@ -180,8 +180,10 @@ The user can get a help-text by typing "cli.py --help" in the terminal, which co
 
 
 \section{Results}
+\subsection{Identification comparison}
+\subsubsection{Performance comparison}
 \subsubsection{Tests}
-\subsubsection{Performance Comparison}
+\subsubsection{Documentation???}
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
 \subsection{Future Work}
