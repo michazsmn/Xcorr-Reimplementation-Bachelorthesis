@@ -131,18 +131,17 @@ For this work, Python is used as the Programming language. Before implementing, 
 
 The search is done against data of the human genome in the fasta format which stores protein primary structure and serves as the "database". Each protein entry inside the file has a header with a unique name, id and description.
 
-Acessing these files with python was done with the help of the pyteomics framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. 
+Acessing these files with python was done with the help of the pyteomics python framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. 
 
 \subsection{Creating a peptide index list}
-For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the fasta database file. In the following this list will be referred to as the "peptide index". While iterating through the fasta database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. This is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regulal expression for this is "(?$<$=[KR])(?!P)". For this matter, a pyteomics library function was used, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". In the human body peptides that are too large for the small intestine are cleaved by the enzyme trypsin, and are called "tryptic peptides". 
+For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the fasta database file. In the following this list will be referred to as the "peptide index". While iterating through the fasta database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme trypsin, and are called "tryptic peptides". This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, a pyteomics library function was used, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
 
-The resulting peptides are all in a unmodified state, so for the program to recognize possible modifications, it is necessary that for every peptide that has been cleaved from a sequence from the fasta, all its isoforms are generated. Those peptides that contain an "X", i.e. an unidentified amino acid, are ignored. The generating of isoforms is achieved by the pyteomics library function parser.isoforms, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Examplary, the static modification Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. 
+The resulting peptides are all in a unmodified state, so for the program to recognize possible modifications, it is necessary that for every peptide that has been cleaved from a sequence from the fasta, all its isoforms are generated. Those peptides that contain an "X", i.e. an unidentified amino acid, are ignored. The generating of isoforms is achieved by the pyteomics library function isoforms from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Examplary, the static modification Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
 
-For every generated isoform, the mass is calculated. This mass is added to a dictionary as the key if it does not exit yet, and the according peptide as the value. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to list, which is sorted by the mass in ascending order [\cref{fig:peptindex}]. 
-
-
+For every generated isoform, the mass is calculated. This mass is added to a dictionary as the key if it does not exist yet, and the according peptide as the value. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to list which is sorted by the mass in ascending order [\cref{fig:peptindex}]. The reason for this is that a python dictionary is unordered and "unindexable", and since binary search will be performed on the peptide index, this is an issue.
+ 
 \subsection{Multiprocessing}
-After generating the peptide index list, a pool of user specified amount of processes is created in order to increase performance. A manager from the python multiprocessing library is used to share the previously generated peptide index between the pool processes. 
+After generating the peptide index list, a pool of user specified amount of processes is created in order to increase performance and use as many computer resources as possible. A manager from the python multiprocessing library is used to share the previously generated peptide index between the pool processes. 
 
 The program starts iterating over the spectra inside the mzml sample file, and does so until all spectra are read. It loads user defined amount of spectra into a buffer, which is accessed by the process pool. A process loads one spectrum scan from the buffer and proceeds with the identification, meaning that the peptide index is searched for a possible close match for the spectrum.
 
@@ -152,12 +151,11 @@ The program starts iterating over the spectra inside the mzml sample file, and d
 \caption{Peptide index list generated from the fasta database file}
 \label{fig:peptindex}
 \end{wrapfigure}
-It is first checked whether the MS level is 2, if it is the case, the program iterates over all possible precursors and selected ions, where it first calculates the mass in dalton of the selected ion.
+It is first checked whether the MS level is 2, if it is the case, the program iterates over all possible precursors and selected ions, where it first calculates the mass in dalton of the selected ion from the retrieved mass to charge value.
 
-The program proceeds with a rough filter of peptides that can come into question for the given scan. This is done by a lookup into the peptide index where it is searched for peptides that have a mass close to the mass of the selected precursor ion. The tolerance for a canditate peptide is 20 parts per million (ppm), that means between a mass of $\pm$ spectrum mass * 0.00002.
+The program proceeds with a rough filter of peptides that can come into question for the given scan. This is done by a lookup into the peptide index where it is searched for peptides that have a mass close to the mass of the selected precursor ion. The tolerance for a canditate peptide is 20 parts per million (ppm), that means between a mass of $\pm$ (spectrum mass * 0.00002).
 
-The lower and upper bounds are first calculated. The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by binary searching the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454,
-the slice would be between the second line and the second last line in \cref{fig:peptindex}.
+The lower and upper tolerance bounds are first calculated. The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by binary searching the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454, the slice would be between the second line and the second last line in \cref{fig:peptindex}.
 
 \subsection{Binning}
 The mass-to-charge values and its corresponding intensities are retrieved as 2 seperate numpy arrays from the mzml file and are sorted in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
@@ -184,21 +182,30 @@ The process returns and adds all identified results for a peptide from the sampl
 
 
 \subsection{CLI}
-To make usage comfortable, a CLI is implemented. This was done with the help of the Typer library. The general usage is "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively. 
+To make usage comfortable, a CLI is implemented. This was done with the help of the Typer Python library. The general usage is defined as "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively, in the fasta format. 
 
 The CLI provides additionally three options: The "--p" flag followed by an integer sets the amount of processes to use for multiprocessed identification. If this flag is not set, the program works with a default value of cpu\_count()-2, where cpu\_count() returns the amount of processes the used machine can provide. The "--s" flag followed by an integer specifies the amount of spectra that the processes load and buffers at a time. The default amount is 5000. If the "--ps" flag is set, the program will work with the predicted spectra instead of the theoretical ones.
 
 The user can get a help-text by typing "cli.py --help" in the terminal, which contains the above mentioned information.
 
-
 \section{Results}
-
-
 
 \subsection{Identification comparison}
 
 
 \subsubsection{Performance comparison}
+Early into the development it was clear that the speed of the python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
+
+Although Python might be considered a comfortable and faster language for development by some people, it is a higher level language than C++. Python is a interpreted language, meaning that code is interpreted at runtime, while C++ is a compiled language and the code is already translated to machine language before execution. C++ programs are running directly on the hardware of the system, so there is no intermediate layer. Python programs have an interpreter as an intermediate layer, which leads to additional overhead.
+
+C++ programs are running directly on the hardware of the system, so there is no intermediate layer. Python programs have an interpreter as an intermediate layer, which leads to additional overhead.
+
+Memory management is different in Python and C++, C++ gives the developer more control over memory allocation than python, the performance of python on the other hand can suffer for the reason of object immutability, because it increases memory usage. 
+
+The difference in runtime optimization is a reason for the speed difference as well: C++ code is optimized mostly at compile time, this can be e.g. loop unrolling or function inlining. Pythons standard interpreter doesn't perform optimization like this. The Type system in both programming languages is different, in C++ the variable data types are static, that means that a variable is assigned a definite data type, which can help the compiler in optimization. Python has the dynamic data type system i.e. the data type of a variable is determined at the runtime, which has a certain time cost.
+
+At this point it needs to be noted that Python was not selected for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool.
+
 \subsubsection{Tests}
 \subsubsection{Documentation}
 For description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, a html documentation with the sphinx tool is generated.
