@@ -189,9 +189,16 @@ The CLI provides additionally three options: The "--p" flag followed by an integ
 The user can get a help-text by typing "cli.py --help" in the terminal, which contains the above mentioned information.
 
 \section{Results}
+An examplary output of the Python program is shown in \cref{fig:output}, sorted in descending order by xcorr scores. 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1\textwidth]{figs/output.png}
+\caption{An example output of the program, used theoretical spectra for identification}
+\label{fig:output}
+\end{figure}
 
 \subsection{Identification comparison}
-Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. The reason for this is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation.
+Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. This is demonstrated in. The reason for the not exact matching is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation. 
 
 \subsubsection{Performance comparison}
 Early into the development it was clear that the speed of the python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
@@ -206,18 +213,39 @@ The difference in runtime optimization is a reason for the speed difference as w
 
 At this point it needs to be noted that Python was not selected for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool.
 
+To compare the execution times of comet and this implementation, a small fasta database file was created. This fasta file contains the top 110 peptides that matched in the initial comet run. The execution times are shown in \cref{tab:speed-comparison}.
+
+\begin{table}[]
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Comet} & \textbf{\begin{tabular}[c]{@{}l@{}}Python reimplementation\\ with theoretical spectra\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Python reimplementation\\ with predicted spectra\end{tabular}} \\ \hline
+               & 0:10:26                                                                                             &                                                                                                   \\ \hline
+\end{tabular}
+\caption{Speed comparison between comet and the python reimplementation}
+\label{tab:speed-comparison}
+\end{table}
+
 \subsubsection{Tests}
+All functions are throughly tested by the python unittest framework
+
 \subsubsection{Documentation}
 For description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, a html documentation with the sphinx tool is generated.
 
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
 \subsection{Future Work}
-Other scores
+Comet uses multiple scores to evaluate peptide matches, so on of the key points for future work is implementing more scores in this implementation as well.
+
+To increase the speed of this implementation, it is necessary to implement a fast scoring array manipulation.
+
 False discovery rates
+
 Sparse array
+
 More modifications
+
 More parameters
+
 \subsection{Impact \& Conclusion}
 
 
