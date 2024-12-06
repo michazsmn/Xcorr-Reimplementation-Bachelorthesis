@@ -191,7 +191,7 @@ The user can get a help-text by typing "cli.py --help" in the terminal, which co
 \section{Results}
 
 \subsection{Identification comparison}
-
+Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. The reason for this is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation.
 
 \subsubsection{Performance comparison}
 Early into the development it was clear that the speed of the python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
