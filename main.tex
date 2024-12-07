@@ -178,7 +178,7 @@ After the sample spectrum and the theoretical spectrum have been binned, they ha
 \caption{Preprocessing the binned arrays before correlation}
 \label{fig:corr}
 \end{wrapfigure}
-The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
+The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}]. The resulting float value is then divided by 10.000.
 
 
 \subsection{Output}
@@ -204,7 +204,18 @@ To compare the execution times and identification of comet and this implementati
 
 \subsection{Identification comparison}
 Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. This is demonstrated in. The reason for the not exact matching is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation. 
-
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1\textwidth]{figs/scan_71120_ps=False.png}
+\caption{Plot of experimental processed spectrum and theoretical spectrum for scan 71220 in \cref{fig:output}}
+\label{fig:71120theo}
+\end{figure}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1\textwidth]{figs/scan_71120_ps=True.png}
+\caption{Plot of experimental processed spectrum and predicted spectrum for scan 71220 in \cref{fig:output}}
+\label{fig:71120predict}
+\end{figure}
 \subsubsection{Performance comparison}
 Early into the development it was clear that the speed of the python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
 
