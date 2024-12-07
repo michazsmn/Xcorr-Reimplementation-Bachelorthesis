@@ -108,7 +108,9 @@ To calculate the Xcorr value and other scores the algorithm first performs a fil
 
 For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the theoretical spectrum \cite{comet-first-paper}. 
 
-In the next step comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by binning. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 1 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 0.5. 
+In the next step comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by binning. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 50 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 25. 
+
+After the binning stage, the binned experimental sample spectrum is further processed by dividing it in 10 equal windows. Inside of each of these windows, all values are normalised between 0 and 50, meaning that the highest peak recieves an intensity of 50, and all other peaks in the bin recieve a value relative to it. This is done for the purpose of making the experimental spectrum look similar to the theoretical spectra, and enhance possibly relevant peaks.
 
 For the xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
 
@@ -148,23 +150,23 @@ After generating the peptide index list, a pool of user specified amount of proc
 The program starts iterating over the spectra inside the mzml sample file, and does so until all spectra are read. It loads user defined amount of spectra into a buffer, which is accessed by the process pool. A process loads one spectrum scan from the buffer and proceeds with the identification, meaning that the peptide index is searched for a possible close match for the spectrum.
 
 \subsection{Filtering of candidate peptides}
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/peptindex.png} 
-\caption{Peptide index list generated from the fasta database file}
-\label{fig:peptindex}
-\end{wrapfigure}
+
 It is first checked whether the MS level is 2, if it is the case, the program iterates over all possible precursors and selected ions, where it first calculates the mass in dalton of the selected ion from the retrieved mass to charge value.
 
 The program proceeds with a rough filter of peptides that can come into question for the given scan. This is done by a lookup into the peptide index where it is searched for peptides that have a mass close to the mass of the selected precursor ion. The tolerance for a canditate peptide is 20 parts per million (ppm), that means between a mass of $\pm$ (spectrum mass * 0.00002).
 
 The lower and upper tolerance bounds are first calculated. The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by binary searching the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454, the slice would be between the second line and the second last line in \cref{fig:peptindex}.
-
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/peptindex.png} 
+\caption{Peptide index list generated from the fasta database file}
+\label{fig:peptindex}
+\end{wrapfigure}
 \subsection{Binning}
-The mass-to-charge values and its corresponding intensities are retrieved as 2 seperate numpy arrays from the mzml file and are sorted in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
+The mass-to-charge values and its corresponding intensities are retrieved as two separate numpy arrays from the mzml file and are sorted in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
 
 The process continues with what in the original comet implementation is referred to as "binning". First, the values in the intensity array are normalised between 0 and 1, and only the top 100 intensities are selected for binning. Depending on the bin size, the bin index of a m/z value is calculated by dividing the m/z by the bin width. A numpy bin array is created, its size depending on the biggest m/z value in the m/z array, and since an m/z array from the mzml file can have values up to 2000, the bin array can have a size of 100.000. The bin array is filled with the intensites from the intensity array on the calculated index. In case there are 2 intensities on the same index, like in the comet implemenation, only the highest intensity is stored.
 
-The program now proceeds with generating fragment m/z values of the peptides from the previously retrieved array slice with candidate peptides. This is done by a seperate function for every peptide in the slice which takes in the peptide as a string and the maximum charge of the selected precursor ion - 1 as the parameters. Like in the initial reference comet run, the maxcharge is limited to 3. The fragmentation function returns a list with m/z values, which is the "theoretical spectrum" of the candidate peptide, which is now limited between 200 and 2000, meaning values outside of this range are ignored, and binned the same way as the spectrum retrieved from the sample mzml file, except that this fragmentation m/z list has no corresponding list containing intensities. In this case the bin array index is calculated the same way, but on the index position the bin array is filled with a 1, and neighboring bins are filled with a value of 0.5. 
+The program now proceeds with generating fragment m/z values of the peptides from the previously retrieved array slice with candidate peptides. This is done by a seperate function for every peptide in the slice which takes in the peptide as a string and the maximum charge of the selected precursor ion - 1 as the parameters. Like in the initial reference comet run, the maxcharge is limited to 3. The fragmentation function returns a list with m/z values, which is the "theoretical spectrum" of the candidate peptide, and binned the same way as the spectrum retrieved from the sample mzml file, except that this fragmentation m/z list has no corresponding list containing intensities. In this case the bin array index is calculated the same way, but on the index position the bin array is filled with a 50, and neighboring bins are filled with a value of 25. 
 
 \subsection{Peak intensity prediction with MS2PIP}
 In case the user of the tool decides to run the program with predicted spectra instead of the theoretical spectra, the program runs the predict\_spectrum function on the peptides. The Pyteomics library and the MS2PIP library have different ways of labeling/marking modifications of a peptide, so the peptide retrieved from the peptide index has to be parsed, and a MS2PIP style-formatted modification string is generated. The peptide and the modification string are then fed into the predict function which returns a predicted array of m/z values and its corresponding intensity array.
@@ -176,7 +178,7 @@ After the sample spectrum and the theoretical spectrum have been binned, they ha
 \caption{Preprocessing the binned arrays before correlation}
 \label{fig:corr}
 \end{wrapfigure}
-The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dotproduct at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
+The correlation is calculated by the correlate function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset.[\cref{fig:corr}].
 
 
 \subsection{Output}
@@ -191,7 +193,8 @@ The CLI provides additionally three options: The "--p" flag followed by an integ
 The user can get a help-text by typing "cli.py --help" in the terminal, which contains the above mentioned information.
 
 \section{Results}
-An examplary output of the Python program is shown in \cref{fig:output}, sorted in descending order by xcorr scores. 
+An examplary output of the Python program is shown in \cref{fig:output}, sorted in descending order by xcorr scores.
+To compare the execution times and identification of comet and this implementation, a small fasta database file was created. This fasta file contains the top 110 peptides that matched in the initial comet run. The execution times are shown in \cref{tab:speed-comparison}.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1\textwidth]{figs/output.png}
@@ -215,8 +218,6 @@ The difference in runtime optimization is a reason for the speed difference as w
 
 At this point it needs to be noted that Python was not selected for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool.
 
-To compare the execution times of comet and this implementation, a small fasta database file was created. This fasta file contains the top 110 peptides that matched in the initial comet run. The execution times are shown in \cref{tab:speed-comparison}.
-
 \begin{table}[]
 \begin{tabular}{|l|l|l|}
 \hline
@@ -234,19 +235,21 @@ All functions are throughly tested by the python unittest framework
 For description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, a html documentation with the sphinx tool is generated.
 
 \section{Discussion and Conclusion}
+In the result section of this thesis the speed and identification of usage of theoretical spectra vs. usage of predicted spectra has been compared, where it became apparent that peptide intensity prediction is significantly slower than the comet approach.
+
 \subsection{Evaluation}
 \subsection{Future Work}
-Comet uses multiple scores to evaluate peptide matches, so on of the key points for future work is implementing more scores in this implementation as well.
+Comet uses multiple scores to evaluate peptide matches e.g the e-value of the sp\_score , so one of the key points for future work is implementing more scores with the usage of predicted spectra as well.
 
-To increase the speed of this implementation, it is necessary to implement a fast scoring array manipulation.
+For the estimation of false positives comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place and adding these reversed peptides to the search. This can lead to better identification quality.
 
-False discovery rates
+Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed.
 
-Sparse array
+Speed can also be greatly increased by implementing sparse arrays like they are used in comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
 
-More modifications
+More modifications can be considered in the future.
 
-More parameters
+Since comet is highly parametrized and thus gives the user a high amount of flexibility with the program, more parameters need to be implemented in this program.
 
 \subsection{Impact \& Conclusion}
 
