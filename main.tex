@@ -107,24 +107,24 @@ Comet is an open source proteomics Tandem MS/\(MS^2\) database search algorithm/
 
 To calculate the Xcorr value and other scores the algorithm first performs a filtering of peptides from a given database. If a sample spectrum has a precursor ion mass of e.g 1500 dalton, the algorithm considers only those peptides from the database that have a mass close to it, e.g with a tolerance of  $\pm$0.005 dalton, meaning that a peptide with a mass of e.g. 1500.001 would be selected for further analysis. All database peptides outside of this mass boundary are discarded.
 
-For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the theoretical spectrum \cite{comet-first-paper}. 
+For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the "theoretical spectrum" \cite{comet-first-paper}. 
 
-In the next step comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by binning. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 50 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. Neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 25. 
+In the next step comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by "binning". Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. 
+
+Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 50 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. For the sake of slightly increasing tolerance and making the theoretical spectrum peaks into a "bell shape", neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 25. 
 
 After the binning stage, the binned experimental sample spectrum is further processed, how exactly this processing works was found out by personal communication by email with the comet developer Jimmy K. Eng.. The binned experimental spectrum is divided in 10 equal windows, inside of each of these windows, all values are normalised between 0 and 50, meaning that the highest peak recieves an intensity of 50, and all other peaks in the bin recieve a value relative to it. This is done for the purpose of making the experimental spectrum look similar to the theoretical spectra, and enhance possibly relevant peaks.
 
-For the xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
 
 \subsubsection{Peptide intensity prediction}
 Peptide prediction algorithms are able to predict \(MS^2\) peaks from given peptide sequences with the help of various machine learning models. MS2PIP\cite{ms2pip} is a command line peptide intensity prediction tool which also exposes a python API.
 
-This work wants to combine the comet cross-correlation scoring algorithm
-with the peptide intensity prediction of MS2PIP to create an even more accurate identification of peptides.
-
 \subsubsection{Goals}
 As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet.
 
-The goal of this work is to check whether replacing comets theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new method of peptide identification.
+The goal of this work is to combine the comet cross-correlation scoring algorithm
+with the peptide intensity prediction of MS2PIP to reveal whether replacing comets theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
 
 \subsubsection{Reference comet run}
 To later compare the identified peptides and the performance of the original comet implementation and this implementation, a reference run with the original comet was done. The number of used threads was set to 10, the mass tolerance was set to 20 parts per million (ppm), amount of missed cleavages was set to 2, the valid ms level is set to two. The run was done with high resolution binning, that means a bin width of 0.02 was used. The modifications oxidation of M and carbamidomethyl of C were considered.
@@ -139,9 +139,9 @@ The search is done against data of the human genome in the fasta format which st
 Acessing these files with python was done with the help of the pyteomics python framework \cite{pyteomics, pyteomics-five-years} which contains many tools for working with proteomics data. 
 
 \subsection{Creating a peptide index list}
-For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the fasta database file. In the following this list will be referred to as the "peptide index". While iterating through the fasta database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme trypsin, and are called "tryptic peptides". This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, the pyteomics library function parser.cleave  was used, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
+For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the fasta database file. In the following this list will be referred to as the "peptide index". While iterating through the fasta database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme trypsin, and are called "tryptic peptides". This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, the pyteomics library function parser.cleave was used, for each peptide that was cleaved off, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
 
-The resulting peptides are all in a unmodified state, so for the program to recognize possible modified peptides in the mzml file, it is necessary that for every peptide that has been cleaved from a sequence from the fasta database file, all its isoforms are generated. Those peptides that contain an "X", i.e. an unidentified amino acid, are ignored. The generating of isoforms is achieved by the pyteomics library function isoforms from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Examplary, the static modification Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
+The resulting peptides are all in a unmodified state, so for the program to recognize possible modified peptides in a scan from the mzml file, it is necessary that for every peptide that has been cleaved from a sequence from the fasta database file, all its isoforms are generated. Those peptides that contain an "X", i.e. an unidentified amino acid, are ignored. The generating of isoforms is achieved by the pyteomics library function isoforms from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Examplary, the static modification Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
 
 For every generated isoform, the mass is calculated. This mass is added to a dictionary as the key if it does not exist yet, and the according peptide as the value. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to list which is sorted by the mass in ascending order [\cref{fig:peptindex}]. The reason for this is that a python dictionary is unordered and "unindexable", and since binary search will be performed in the following on the peptide index, this is an issue.
  
@@ -214,13 +214,13 @@ Although the resulting xcorr scores are not exactly matching with the scores of 
 
 Now that the scores generated by the python program are close to the scores in comet, a comparison between scores using ms2pip can be done.
 
-An example for a good match is shown in \cref{predandtheo}. The blue peaks are generated by the processed experimental spectrum from the scan 71120, the red peaks are the theoretical spectrum for the peptide "LAADEDDDDDDEEDDDEDDDDDDFDDEEAEEKAPVK". As one can see, most of the red theoretical spectrum peaks in \cref{predandtheo}(a) match the highest blue peaks. In this case, 60 of the total 140 theoretical spectrum ion peaks match a blue peak. 
+An example for a good match is shown in \cref{predandtheo}. The blue peaks are generated by the processed experimental spectrum from the scan 71120, and the red peaks are the theoretical spectrum for the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK". As can be seen, most of the red theoretical spectrum peaks in \cref{predandtheo}(a) match the highest blue peaks. In this case, 60 of the total 140 theoretical spectrum ion peaks match a blue peak. 
 
 For the predicted spectrum matching in \cref{predandtheo}(b) for the same scan, 70 red peaks were predicted in total by MS2PIP, 25 of which are matching the peaks of the blue experimental spectrum.
 
-\cref{predandtheocorr} demonstrates that the highest correlation was calculated at zero offset of both experimental and theoretical/predicted spectra. There are notably less background similarity peaks in the correlation array of the predicted spectrum, which demonstrates that the predicted spectrum is more accurate than the theoretical one.
+\cref{predandtheocorr} demonstrates that the highest correlation was calculated at zero offset of both the experimental and theoretical/predicted spectra. There are notably fewer background similarity peaks in the correlation array of the predicted spectrum, demonstrating that the predicted spectrum is more accurate than the theoretical one.
 
-All of this are high indicators that the experimental spectrum  with the scan number 71120 might indeed be produced by the peptide "LAADEDDDDDDEEDDDEDDDDDDFDDEEAEEKAPVK".
+All of this are high indicators that the experimental spectrum with scan number 71120 might indeed be produced by the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK".
 
 
 \begin{figure}
@@ -256,9 +256,9 @@ All of this are high indicators that the experimental spectrum  with the scan nu
 \end{figure}
 
 \subsubsection{Performance comparison}
-Early into the development it was clear that the speed of the python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
+Early into the development it was clear that the speed of the Python tool would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
 
-Although Python might be considered a comfortable and faster language for development by some people, it is a higher level language than C++. Python is a interpreted language, meaning that code is interpreted at runtime, while C++ is a compiled language and the code is already translated to machine language before execution. C++ programs are running directly on the hardware of the system, so there is no intermediate layer. Python programs have an interpreter as an intermediate layer, which leads to additional overhead.
+Although Python might be considered a comfortable and faster language for development by some people, it is a higher level language than C++. Python is a interpreted language, meaning that code is interpreted at run-time, while C++ is a compiled language and the code is already translated to machine language before execution. C++ programs are running directly on the hardware of the system, so there is no intermediate layer. Python programs have an interpreter as an intermediate layer, which leads to additional overhead.
 
 C++ programs are running directly on the hardware of the system, so there is no intermediate layer. Python programs have an interpreter as an intermediate layer, which leads to additional overhead.
 
@@ -272,7 +272,7 @@ At this point it needs to be noted that Python was not selected for the sake of 
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Comet} & \textbf{\begin{tabular}[c]{@{}l@{}}Python reimplementation\\ with theoretical spectra\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Python reimplementation\\ with predicted spectra\end{tabular}} \\ \hline
-               & 0:10:26                                                                                             &                                                                                                   \\ \hline
+               & 0:10:32                                                                                             &           0:17:44                                                                                        \\ \hline
 \end{tabular}
 \caption{Speed comparison between comet and the python reimplementation}
 \label{tab:speed-comparison}
@@ -289,15 +289,15 @@ In the result section of this thesis the speed and identification of usage of th
 
 \subsection{Evaluation}
 \subsection{Future Work}
-Comet uses multiple scores to evaluate peptide matches e.g the e-value of the sp\_score , so one of the key points for future work is implementing more scores with the usage of predicted spectra as well.
+Comet uses multiple scores to evaluate peptide matches, e.g the e-value of the sp\_score , so one of the key points for future work is implementing more scores with the usage of predicted spectra as well.
 
-For the estimation of false positives comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place and adding these reversed peptides to the search. This can lead to better identification quality.
+For the estimation of false positives comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place, and adding these reversed peptides to the search. False positive estimation like this can lead to better identification quality.
 
 Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed.
 
 Speed can also be greatly increased by implementing sparse arrays like they are used in comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
 
-More modifications can be considered in the future.
+More modifications can be considered in the future, including N and C Terminal modifications.
 
 Since comet is highly parametrized and thus gives the user a high amount of flexibility with the program, more parameters need to be implemented in this program.
 
