@@ -118,13 +118,13 @@ After the binning stage, the binned experimental sample spectrum is further proc
 For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
 
 \subsubsection{Peptide intensity prediction}
-Peptide prediction algorithms are able to predict \(MS^2\) peaks from given peptide sequences with the help of various machine learning models trained on large amounts of \(MS^2\) data. MS2PIP\cite{ms2pip} (short for \(MS^2\) peak instensity prediction) is a command line peptide intensity prediction tool which also exposes a Python API.
+Peptide prediction algorithms are able to predict \(MS^2\) peaks from given peptide sequences with the help of various machine learning models trained on large amounts of \(MS^2\) data. MS2PIP\cite{ms2pip} (short for \(MS^2\) peak instensity prediction) is a command line peptide intensity prediction tool which also exposes a Python API. The tool is able to predict the m/z values given a peptide (with static and variable modifications) and its precursor charge, and also its intensities. This will be in the following referred to as the "predicted spectrum" of a peptide.
 
 \subsubsection{Goals}
 The goal of this work is to combine the comet cross-correlation scoring algorithm
 with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
 
-As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet.
+As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet. 
 
 \subsubsection{Reference comet run}
 To later compare the identified peptides and the performance of the original comet implementation and this implementation, a reference run with the original Comet search tool was performed. The number of used processing threads was set to 10, the peptide mass tolerance was set to 20 parts per million (ppm), the amount of missed cleavages was set to 2, the valid ms level is set to two. The run was done with high resolution binning, that means a bin width of 0.02 was used. The variable modification oxidation of the amino acid methionine (M) and static modification carbamidomethylation of cysteine (C) were considered.
@@ -205,7 +205,9 @@ An examplary output of the Python program is shown in \cref{fig:output}, sorted 
 \end{figure}
 
 \subsection{Identification comparison}
-Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. This is demonstrated in \cref{fig:scatterplot}. The x-axis represents the scores produced by the python program, the y-axis the scores of comet. For this plot only the highest score was selected for every scan number. The scatterplot dots align mostly in a straight line, which demonstrates that the scores of the python Program are close to the scores of comet. The scatterplot also contains outliers which shows that some scores are not matching, the reason for the not exact matching is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation. 
+Although the resulting xcorr scores are not exactly matching with the scores of the original comet implentation, this implementation manages to compute scores that are close to the ones in comet. This is demonstrated in \cref{fig:scatterplot}. The x-axis represents the scores produced by the python program, the y-axis the scores of comet. For this plot only the highest score was selected for every scan number, this was achieved by sorting the scores in descending order and applying the drop\_duplicates function from the Pandas library. Both results were then joined by Pandas to create a list containing only one score entry for each method for each scan number. 
+
+The scatterplot dots align mostly in a straight line, which demonstrates that the scores of the python Program are close to the scores of comet. The scatterplot also contains outliers which shows that some scores are not matching, the reason for the not exact matching is that comet has additional steps in preprocessing the binned spectra, and comet also uses a fast scoring algorithm which was not taken into account in this python implementation. 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/scatterplot.png}
@@ -213,7 +215,7 @@ Although the resulting xcorr scores are not exactly matching with the scores of 
 \label{fig:scatterplot}
 \end{figure}
 
-Now that the scores generated by the Python program using theoretical spectra are close to the scores in Comet, a comparison between scores using predicted spectra with Ms2pip can be done. The scores of the Python program with the theoretical spectra have been plotted against the scores using predicted spectra in \cref{fig:scatterplot_predicted_theoretical}. As expected, the correlation between both scoring is low. 
+Now that the scores generated by the Python program using theoretical spectra are close to the scores in Comet, a comparison between scores using predicted spectra with Ms2pip can be done. The scores of the Python program with the theoretical spectra have been plotted against the scores using predicted spectra in \cref{fig:scatterplot_predicted_theoretical}. As expected, the correlation between both scorings is low. 
 
 \begin{figure}
 \centering
@@ -293,9 +295,9 @@ Memory management is different in Python and C++, C++ gives the developer more c
 
 The difference in runtime optimization is a reason for the speed difference as well: C++ code is optimized mostly at compile time, this can be e.g. loop unrolling or function inlining. Pythons standard interpreter doesn't perform optimization like this. The Type system in both programming languages is different, in C++ the variable data types are static, that means that a variable is assigned a definite data type, which can help the compiler in optimization. Python has the dynamic data type system i.e. the data type of a variable is determined at the runtime, which has a certain time cost.
 
-The fast scoring algorithm of comet has not been implemented in this python version, which is one of the reasons for the slower performance.
-
 At this point it needs to be noted that Python was not selected as the programming language for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool.
+
+The fast scoring algorithm of comet has not been implemented in this python version, which is one of the reasons for the slower performance.
 
 To detect the optimal amount of processes to use for a computation, the program was run in both theoretical and prediction modes at different amounts of processes, and the execution times were noted. The execution times are shown in \cref{tab:speed-comparison}. An issue with MS2PIP is that the funtions used from this module seem to starting processes by their own, and this multiprocessing cant be controlled by the user. Thich results in a very high amount of processes in total. This results in a "process jam". The numpy library uses multithreading by deafult too.
 
@@ -309,6 +311,8 @@ Comet Original Implementation & \begin{tabular}[c]{@{}l@{}}Python reimplementati
 \label{tab:speed-comparison}
 \end{table}
 
+Now that the optimal amount of processes has been determined, a large fasta can be used for a search.
+
 \subsubsection{Tests}
 All functions are thoroughly tested by the Python Unittest framework.
 
@@ -316,25 +320,31 @@ All functions are thoroughly tested by the Python Unittest framework.
 For description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, an HTML documentation with the sphinx tool is generated.
 
 \section{Discussion and Conclusion}
-In the result section of this thesis the speed and identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it became apparent that the prediction of the peptide intensity is significantly slower than the comet approach. 
+In the result section of this thesis the speed and identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it has been shown that the reimplemented python tool can detect peptides that are not detected by comet.
 
-\subsection{Evaluation}
-Speed is low
+It also became apparent that the Python reimplementation is significantly slower than the original C++ counterpart, especially with peptide intensity prediction.
 
-Theoretical spectra are always correct for a given peptide. Predicted spectra can predict the m/z as well as the intensity at the m/z wrong.
+While peptide spectrum prediction can often be more accurate than using a theoretical spectrum of a peptide for matching,
+it has a drawback: Theoretical spectra are always correct for a given peptide, that means given a peptide and a precursor charge state, an unambigous theoretical spectrum can be generated. Peptide intensity prediction on the other hand can predict the m/z vallues as well as the corresponding intensities wrong.
+
+Considering the long execution time of a database search run with peptide prediction, but also its advantage of uncovering peptides not found with theoretical spectrum matching, a balanced approach can be taken and the scoring with peptide intensity prediction can be used for validation of a theoretical spectrum matching database search run. When a certain score threshold has been reached, the program can proceed to score with peptide prediction, and check whether the result is positive too.
 
 \subsection{Future Work}
+Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed. 
+
+Speed can also be greatly increased by implementing sparse arrays like they are used in comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
+
+It is neccessary to solve multiprocessing issues, the numpy library as well as the MS2PIP multiprocessing need to be configured in such a way that processes will not created in an uncontrolled way. 
+
 Comet uses multiple scores to evaluate peptide matches, e.g. the e-value of the sp\_score , so one of the key points for future work is implementing more scores with the usage of predicted spectra as well.
 
 For the estimation of false positives comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place, and adding these reversed peptides to the search. False positive estimation like this can lead to better identification quality.
 
-Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed.
-
-Speed can also be greatly increased by implementing sparse arrays like they are used in comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
-
 More modifications can be considered in the future, including N and C Terminal modifications.
 
 Since comet is highly parametrized and thus gives the user a high amount of flexibility with the program, more parameters need to be implemented in this program.
+
+Other prediction tools can be tried in the future with different algorithms, as well as different algorithms in MS2PIP itself.
 
 \subsection{Impact \& Conclusion}
 
