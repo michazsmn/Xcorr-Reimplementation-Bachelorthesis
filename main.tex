@@ -125,7 +125,9 @@ For the Xcorr, the similarity at zero offset is first determined, after that the
 \subsection{Peptide intensity prediction}
 Peptide prediction algorithms are able to predict \(MS^2\) peaks from given peptide sequences with the help of various machine learning models trained on large amounts of \(MS^2\) PSM (peptide spectrum match) data. A PSM is a score which is close to zero when a peptide has been falsely identified and is likely to be a false match and occured by chance. A high PSM score, meaning a score close to 1, implies that a match is unlikely to have occurred by chance and that it is likely that a match is correct. 
 
-MS2PIP\cite{ms2pip, ms2pip-server} (short for \(MS^2\) peak instensity prediction) is a command line peptide intensity prediction tool which also exposes a Python API. MS2PIP has multiple built-in prediction models which differ in instruments, fragmentation method, modifications, and labeling techniques; the supported models are HCD, HCDch2, CID, CIDch2, iTRAQ, iTRAQphospho, TMT, and TTOF5600. Each model was trained on different training-test datasets and evaluation datasets including proteins from human, rat, mouse, plant and bacteria \cite{ms2pip}. The models were trained with regression learning with the use of a feature vector, for this the training dataset was divided by the charge states 2 and 3, since these are the most common occuring ion charges, and by the peptide length between 8 and 28 amino acids. Features like n-terminal labeling, peptide m/z value, fragment ion m/z value, number of accurance of an amino acid in the, peptide e.t.c. have been taken into account for the feature vector. Each PSM is then assigned a set of features in the feature vector and labeled with a target. Regression models for multiple types of fragment ions, including b and y ions which are the fragment ions focused on in this thesis, have been constructed.
+MS2PIP\cite{ms2pip, ms2pip-server} (short for \(MS^2\) peak instensity prediction) is a command line peptide intensity prediction tool which also exposes a Python API. MS2PIP has multiple built-in prediction models which differ in instruments, fragmentation method, modifications, and labeling techniques; the supported models are HCD, HCDch2, CID, CIDch2, iTRAQ, iTRAQphospho, TMT, and TTOF5600. Each model was trained on different training-test datasets and evaluation datasets including proteins from human, rat, mouse, plant and bacteria \cite{ms2pip}. The models were trained with regression learning with the use of a feature vector, for this the training dataset was divided by the charge states 2 and 3, since these are the most common occuring ion charges, and by the peptide length between 8 and 28 amino acids. Features like n-terminal labeling, peptide m/z value, fragment ion m/z value, number of accurance of an amino acid in the, peptide e.t.c. have been taken into account for the feature vector. Each PSM is then assigned a set of features in the feature vector and labeled with a target. Regression models for multiple types of fragment ions, including b and y ions which are the fragment ions focused on in this thesis, have been constructed. The training data spectra are searched for fragment ion peaks with a tolerance of 0.8 dalton, in case multiple peaks are present in this range, only the highest is selected as the matching peak. A training data set is collected for every fragment ion that holds all PSMs fitting the charge and peptide length of the fragments, the peak intensities are assigned to the training set as its targets. For each ion fragment the training data set is merged from multiple experimental spectra by merging the peak intensites, to eliminate redundant PSMs. If in a PSM a peptide sequence exists more that 10 times, this PSM is removed to reduce random matches.
+
+The regression method that was used is the random forest regression method. The peak intensities were retrieved as the average of all regression tree forest outputs.
 
 The tool is able to predict the m/z values given a peptide (with static and variable modifications) and its precursor charge, and also its intensities. This will be in the following referred to as the "predicted spectrum" of a peptide.
 
@@ -134,7 +136,6 @@ The goal of this work is to combine the comet cross-correlation scoring algorith
 with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
 
 As comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet. 
-
 
 \section{Results}
 
@@ -161,7 +162,11 @@ For every generated isoform, the mass is calculated. This mass is added to a dic
 After generating the peptide index list, a pool of user specified amount of processes is created in order to increase performance and use as many computer resources as possible. A \textit{manager} from the python multiprocessing library is used to share the previously generated peptide index between the pool processes. 
 
 The program starts iterating over the spectra inside the mzml sample file, and does so until all spectra are read. It loads user defined amount of spectra into a buffer, which is accessed by the process pool. A process loads one spectrum scan from the buffer and proceeds with the identification, meaning that the peptide index is searched for a possible close match for the spectrum.
-
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/peptindex.png} 
+\caption{Peptide index list generated from the fasta database file}
+\label{fig:peptindex}
+\end{wrapfigure}
 \subsubsection{Filtering of candidate peptides}
 Each single process calls the \textit{identification} function, which does the following:
 It iterates over the tree structure of a scan from the mzml file, and it is first checked whether the MS level is 2, i.e an \(MS^2\) scan, since the file contains scans of various MS levels. If this is the case, the program iterates over all possible precursors and selected ions, where it first calculates the mass in dalton of the selected ion from the retrieved mass to charge and charge values. This is done by the calculation (mz * charge) - (hydrogen\_mass * charge).
@@ -169,11 +174,7 @@ It iterates over the tree structure of a scan from the mzml file, and it is firs
 The program proceeds with a rough filtering of peptides that can come into question for the given scan. This is done by a lookup into the peptide index where it is searched for peptides that have a mass close to the mass of the selected precursor ion. The tolerance for a canditate peptide is 20 parts per million (ppm), that means between a mass of $\pm$ (spectrum mass * 0.00002). The lower and upper tolerance bounds are calculated by the \textit{tolerance\_bounds} function. 
 
 The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by performing binary searching on the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454, the slice would be between the second line and the second last line in \cref{fig:peptindex}.
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/peptindex.png} 
-\caption{Peptide index list generated from the fasta database file}
-\label{fig:peptindex}
-\end{wrapfigure}
+
 
 \subsubsection{Spectrum binning}
 The mass-to-charge values and its corresponding intensities are retrieved as two separate numpy arrays from the mzml file and are sorted in parallel in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
@@ -187,15 +188,15 @@ In case the user of the tool decides to run the program with predicted spectra i
 
 \subsubsection{Xcorr scoring}
 After the sample spectrum and the theoretical spectrum have been binned, they have to be brought to the same length. This is achieved by filling up the binned theoretical spectrum with zeros in case it is smaller than the binned sample spectrum. If the binned sample array is smaller, it is simply cut to the right length. 
-
-The correlation is calculated by the \textit{correlate} function from the numpy library with the mode "valid". In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift of 75/0.02 bins, where at each overlap the dot product is calculated. The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset, then divided by 10.000.[\cref{fig:corr}].
 \begin{wrapfigure}{r}{0.5\textwidth}
 \includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
 \caption{Preprocessing the binned arrays before correlation}
 \label{fig:corr}
 \end{wrapfigure}
+In the comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 dalton, which corresponds to a shift size of 75/0.02 bins, where at each overlap the correlation is calculated. This is achieved by appending the shift size amount of zeros on the first and last index on one of the arrays and the \textit{correlate} function from the numpy library with the mode "valid". The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset, then divided by 10.000.[\cref{fig:corr}].
+
 \subsubsection{Output}
-The process returns and adds all identified results for a peptide from the sample mzml file to a result list. When the buffer is fully consumed, all results are printed to a tsv file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precuror ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the plain unmodified peptide.
+The process returns and adds all identified results for a peptide from the sample mzml file to a result list. When the buffer is fully consumed, all results are printed to a tsv file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precursor ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the peptide which can also contain modifications.
 
 \subsubsection{CLI}
 To make usage comfortable, a CLI is implemented. This was done with the help of the Typer Python library. The general usage is defined as "cli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzml format as a string, and "PROTEIN\_DATABASE" the string for the database filename of the human genome respectively, in the fasta format. 
@@ -205,7 +206,7 @@ The CLI provides additionally three options: The "--p" flag followed by an integ
 The user can get a help-text by typing "cli.py --help" in the terminal, which contains the above mentioned information.
 
 \subsection{Comparison}
-To compare the execution times and identification of comet and this implementation, a small fasta database file was created, which contains the top 110 peptides that matched in the initial previously described comet run. Both versions of the Python program were run with the exact same parameters with a ssh remote connection on a data center.
+To compare the execution times and identification of comet and this implementation, a small fasta database file was created, which contains the top 110 peptides that resulted in the best scores in the initial previously described comet run. Both versions of the Python program were run with the exact same parameters with a ssh remote connection on a data center.
 An examplary output of the Python program is shown in \cref{fig:output}, sorted in descending order by xcorr scores.
 \begin{figure}[ht]
 \centering
@@ -239,7 +240,7 @@ Now that the scores generated by the Python program using theoretical spectra ar
    \caption{}
    \label{fig:scatterplot_windows}
 \end{subfigure}
-\caption{(a):Scatterplot between the scores using theoretical spectra and predicted spectra in python. For each scan number in the results only the highest xcorr value was selected. (b): with normalising in 10 windows \cref{fig:output}}
+\caption{(a):Scatterplot between the scores using theoretical spectra and predicted spectra in the python reimplementation. For each scan number in the results only the highest xcorr value was selected. (b): with normalisation in 10 windows \cref{fig:output}}
 \label{scatterplot_python}
 \end{figure}
 An example for a good match is shown in \cref{predandtheo}. The blue peaks are generated by the processed experimental spectrum from the scan 71120, and the red peaks are the theoretical spectrum for the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK". As can be seen, most of the red theoretical spectrum peaks in \cref{predandtheo}(a) match the highest blue peaks. In this case, 60 of the total 140 theoretical spectrum ion peaks match a blue peak. 
@@ -267,7 +268,7 @@ To address this problem, the same approach as in comet is used. Instead of norma
    \label{fig:predict}
 \end{subfigure}
 
-\caption{(a): Plot of an experimental processed spectrum (blue) and theoretical spectrum (red). (b): experimental (blue) and predicted spectrum (red) for scan 71220 in \cref{fig:output} . Red colored spectra are presented negative only for visualization purposes.}
+\caption{(a): Plot of an experimental processed spectrum (blue) and theoretical spectrum (red). (b): experimental (blue) and predicted spectrum (red) for scan 71220 in \cref{fig:output} . The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are presented negative only for visualization purposes.}
 \label{predandtheo}
 \end{figure}
 
@@ -283,14 +284,14 @@ To address this problem, the same approach as in comet is used. Instead of norma
    \caption{}
    \label{fig:corrpredict}
 \end{subfigure}
-\caption{(a): Plot of correlation array for match with theoretical spectrum (b): with predicted spectrum \cref{fig:output}}
+\caption{(a): Plot of correlation array returned by the numpy \textit{correlate} function for match with theoretical spectrum (b): with predicted spectrum. The x-axis represents the correlation array index, the y-axis the correlation.}
 \label{predandtheocorr}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/scan_71120_ps=True_wins.png}
-\caption{Scan 71120 predicted spectrum matching after window normalisation}
+\caption{Matching predicted spectrum with experimental spectrum for scan 71120 after window normalisation}
 \label{fig:scanwin}
 \end{figure}
 
@@ -299,7 +300,7 @@ To measure the accuracy of Theoretical spectrum matching v.s. predicted spectrum
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1\textwidth]{figs/ratio_table.png}
-\caption{Average Ions Total, Ions matched and the Ratio for theoretical spectrum matching and four MS2PIP prediction models}
+\caption{Average Ions Total, Ions matched and the Ratio for theoretical spectrum matching and four examplary MS2PIP prediction models}
 \label{fig:ratio_table}
 \end{figure}
 
@@ -323,7 +324,7 @@ To detect the optimal amount of processes to use for a computation, the program 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1\textwidth]{figs/speed-comparison.png}
-\caption{Speed comparison}
+\caption{Computation speed comparison for comet and the python reimplementation in both modes and models.}
 \label{fig:speed-comparison}
 \end{figure}
 
