@@ -15,6 +15,7 @@
 
 \begin{document}
 
+
 \begin{titlepage}
     \begin{center}
         \LARGE
@@ -47,7 +48,10 @@
         M.Sc. Dirk Winkelhardt
             
         \vfill
-        
+                \begin{figure}[ht]
+            \centering
+            \includegraphics[width=0.2\textwidth]{figs/medbioinf_logo-small.png}
+        \end{figure}
         \begin{figure}[ht]
             \centering
             \includegraphics[width=0.2\textwidth]{figs/Ruhr-Universität_Bochum_logo.svg.png}
@@ -66,8 +70,8 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a  chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for genomics research or diabetes research \cite{ms-diabetes}.
-Before mass spectrometry can be performed, the sample has to be prepared meaning that it is turned into a state that is a valid input for the mass spectrometer. This is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}: 
+Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for genomics research or diabetes research \cite{ms-diabetes}.
+Before mass spectrometry can be performed, the sample has to be prepared meaning that it is turned into a state that is a valid input for the mass spectrometer. This is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}:
 
 \begin{enumerate}
 \item After the sample preparation, the sample is ionized, meaning that ions are generated. A common approach in gas chromatography is electron bombardement where the molecules are passed through a ionization chamber with accelerated electrons. The electrons collide with the molecules, break their bonds and turn them into fragments. A different approach in liquid
@@ -82,7 +86,7 @@ Proteins are molecules that have various functions in the human body. They can b
 
 Tandem mass spectrometry (MS/MS or \(MS^2\)) can be understood as an extension of mass spectrometry. It is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. This is realized by connecting two analyzers behind each other in "tandem", which are connected by a collision cell. In the first MS run ions are analyzed, those are the so called "precursor ions" and some of then are selected by their m/z value. The selected precursor ions are then even further fragmented into smaller peptide chains by an inert gas, after which they are let into the second spectrometer \cite{tandem-mass-spec-deutsch, tandem-mass-spec-yt}.
 
-Since every peptide sequence produces its own unique mass spectrum, it can be used as its unique fingerprint to identify it in a sample.
+Since every peptide sequence produces its own unique mass spectrum through ion frangemtation (which is explained further below), it can be used as its unique fingerprint to identify it in a sample. 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/peptide.png}
@@ -95,7 +99,7 @@ Since every peptide sequence produces its own unique mass spectrum, it can be us
 \caption{Peptide identification with the database searching approach \cite{Nesvizhskii2007}}
 \label{fig:database-search}
 \end{figure}
-Tandem MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database of knonwn proteins, and de novo searching, where peptides are deduced without a database. The de novo approach is typically less accurate than the database method, while the database method works only if the selected database with which the search is done, indeed contains the searched proteins/peptides.
+Tandem MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database of known proteins, and de novo searching, where peptides are deduced without a database. The de novo approach is typically less accurate than the database method, while the database method works only if the selected database with which the search is done, indeed contains the searched proteins/peptides.
 
 This thesis is revolving around the database searching approach. The general concept of tandem MS database searching is described in \cref{fig:database-search}. An experimental spectrum from an MS/MS run generated by an unknown peptide sequence has a certain mass, if peptides retrieved from a protein database have a mass close to the experimental peptide, the MS/MS spectrum is compared to their "theoretical spectra". To understand how a theoretical spectrum is generated, it is first necessary to understand the concept of ion fragmentation. 
 
@@ -104,12 +108,18 @@ In a mass spectrometer peptide bonds can be broken in different positions of the
 A theoretical spectrum of a peptide from a database is created by the b and y series, for this the sums of the first, then first and second, then first, seconds and third etc. amino acids are calculated, until the end of the peptide sequence, for both the b and y ions, considering charges.
 
 % 
+\section{Motivation \& Goals}
+The goal of this work is to combine the Comet cross-correlation scoring algorithm
+with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
+
+As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet. 
 
 \section{Methods}
 \subsection{Comet Xcorr in detail}
 Comet is an open source proteomics Tandem \(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. For the peptide identification the tool computes multiple scores that evaluate how similar a sample peptide spectrum is to a peptide spectrum from a protein database that it is compared to. One of these scores is the "Xcorr", which will be the focus of this thesis. 
 
-To calculate the Xcorr value and other scores the algorithm first performs a filtering of peptides from a given database. If a experimental MS2 spectrum has a precursor ion mass of e.g 1500 dalton, the algorithm considers only those peptides from the database that have a mass close to it, e.g with a tolerance of  $\pm$0.005 dalton, meaning that a peptide with a mass of e.g. 1500.001 would be selected for further analysis. All database peptides outside of this mass boundary are discarded.
+
+To calculate the Xcorr value and other scores the algorithm first performs \textit{in silico} digestion of proteins from a database, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme Trypsin, and are called "tryptic peptides". Comet then filters these peptides that have been cleaved off from the database proteins. If a experimental MS2 spectrum has a precursor ion mass of e.g 1500 dalton, the algorithm considers only those peptides from the database that have a mass close to it, e.g with a tolerance of  $\pm$0.005 dalton, meaning that a peptide with a mass of e.g. 1500.001 would be selected for further analysis. All database peptides outside of this mass boundary are discarded.
 
 For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the theoretical spectrum \cite{comet-first-paper}. 
 
@@ -124,7 +134,16 @@ Since in 1994 it was not entirely possible to predict the intensities of 'b' and
 
 After the binning stage, the binned experimental sample spectrum is further processed, how exactly this processing works was found out by personal communication by email with the Comet developer Jimmy K. Eng.; The binned experimental spectrum is divided in 10 equal windows, inside of each of these windows, all values are normalised between 0 and 50, meaning that the highest peak receives an intensity of 50, and all other peaks in the bin receive a value relative to it. This is done for the purpose of making the experimental spectrum look similar to the theoretical spectra, and enhance possibly relevant peaks.
 
-For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 dalton and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 m/z and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+
+\subsection{Reference Comet run}
+To later compare the identified peptides and the performance of the original Comet implementation and this implementation, a reference run with the original Comet search tool was performed. The Comet version "2021.01 rev. 0 was used. 
+
+ For this reference comet run, LFQ Orbitrap data was used as the sample, specifically in the mzML format, which is a xml based format for storing mass spec scan data. Each scan has a unique scan id and contains binary coded information about the scan start time, MS level, base peak m/z and intensity, lowest and highest observed m/z, the m/z array and the intensity array e.t.c.. In case of a \(MS^2\) scan, it additionally contains information about the selected precursor ion(s) like e.g. its charge state. The exact file was obtained from \textbf{https://ftp.pride.ebi.ac.uk/pride/data/archive/2022/02/PXD028735/}, the name of the used file is "LFQ\_Orbitrap\_DDA\_Human\_01.raw".
+
+The search was done against data of the Homo sapiens (Human) proteome in the fasta format which stores protein sequences and serves as the "database". Each protein entry inside the file has a header with a unique name, id and description. The used fasta file was acquired from the uniprot knowledgebase and has the id UP000005640,  \textbf{https://www.uniprot.org/proteomes/UP000005640}
+
+The number of used processing threads was set to 10, the peptide mass tolerance was set to 20 parts per million (ppm), the amount of missed cleavages was set to 2, the valid ms level is set to two. The run was done with high resolution binning, that means a bin width of 0.02 was used. The variable modification oxidation of the amino acid methionine (M) and static modification carbamidomethylation of cysteine (C) were considered.
 
 \subsection{Peptide intensity prediction}
 Peptide prediction algorithms are able to predict \(MS^2\) peaks from given peptide sequences with the help of various machine learning models trained on large amounts of \(MS^2\) PSM (peptide spectrum match) data. A PSM is a score which is close to zero when a peptide has been falsely identified and is likely to be a false match and occurred by chance. A high PSM score, meaning a score close to 1, implies that a match is unlikely to have occurred by chance and that it is likely that a match is correct. 
@@ -138,31 +157,30 @@ Random Forest \cite{random-forest} is a regression/classification technique base
 The MS2PIP tool is able to predict the m/z values given a peptide (with static and variable modifications) and its precursor charge, and also its intensities. This will be in the following referred to as the "predicted spectrum" of a peptide.
 
 %
-
-\section{Motivation \& Goals}
-The goal of this work is to combine the Comet cross-correlation scoring algorithm
-with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
-
-As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet. 
+\subsection{Used Python Libraries}
+The following Python packages have been used in the reimplementation:
+\begin{itemize}
+    \item \textit{typer} (version 0.15.1) is a tool for building CLI's.
+    \item \textit{pyteomics} (version 4.7.5) This package contains many tools for analysis of proteomics data \cite{pyteomics, pyteomics-five-years}
+    \item \textit{numpy} (version 1.26.4). Numpy (Numerical Python) is a package for efficient work with datastructures like matrices and arrays.
+    \item \textit{lxml} (version 5.3.0). The lxml package is necessary for the pyteomics package to process xml based languages.
+    \item \textit{ms2pip} (version 3.13.0). MS2PIP is a python package for peptide fragmentation spectrum prediction.
+    \item \textit{pandas} (version 1.5.3) . Pandas is a python library for data analysis and data manipulation.
+    \item \textit{scikit-learn} (version 1.6.0) This package is used for various scientific purposes like machine learning.
+\end{itemize}
 
 \section{Results}
 
-\subsection{Reference Comet run}
-To later compare the identified peptides and the performance of the original Comet implementation and this implementation, a reference run with the original Comet search tool was performed. The number of used processing threads was set to 10, the peptide mass tolerance was set to 20 parts per million (ppm), the amount of missed cleavages was set to 2, the valid ms level is set to two. The run was done with high resolution binning, that means a bin width of 0.02 was used. The variable modification oxidation of the amino acid methionine (M) and static modification carbamidomethylation of cysteine (C) were considered.
-
 \subsection{Reimplementation of the Xcorr algorithm in Python}
+As already mentioned in the Goals section, Python is selected as the programming language for this work.
+
 \subsubsection{Reading in Spectrum data}
-
-As already mentioned in the Goals section, Python is selected as the programming language for this work. Before implementation, it is first necessary to have human genome data to work with, for this purpose, LFQ Orbitrap data was used as the sample, specifically in the mzML format, which is a xml based format for storing mass spec scan data. Each scan has a unique scan id and contains binary coded information about the scan start time, MS level, base peak m/z and intensity, lowest and highest observed m/z, the m/z array and the intensity array e.t.c.. In case of a \(MS^2\) scan, it additionally contains information about the selected precursor ion(s) like e.g. its charge state.
-
-The search is done against data of the Homo sapiens (Human) proteome in the fasta format which stores protein sequences and serves as the "database". Each protein entry inside the file has a header with a unique name, id and description. The used fasta file was obtained from the uniprot knowledgebase and has the id UP000005640.
-
-Acessing these files with Python was done with the help of the pyteomics python framework \cite{pyteomics, pyteomics-five-years} which contains many tools for analysis of proteomics data. 
+To compare the reimplementation with the original comet, the exact same mzML and FASTA files were used as in the reference Comet run. Acessing these files with Python was done with the help of the pyteomics python framework. Pyteomics has \textit{read} functions for parsing mzML and FASTA files. The \textit{fasta.read} function returns an iterator of tuples, of which the first entry is the header and the second one the sequence. The \textit{mzml.read} function returns an iterator with spectrum properties.
 
 \subsubsection{Creating a peptide index list}
-For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the FASTA database file. In the following this list will be referred to as the "peptide index". While iterating through the FASTA database, the retrieved sequences are \textit{in silico} digested, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme Trypsin, and are called "tryptic peptides". This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, the pyteomics library function \textit{parser.cleave} was used, for each peptide that was cleaved off, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
+For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the FASTA database file. In the following this list will be referred to as the "peptide index". While iterating through the FASTA database, the retrieved sequences are \textit{in silico} digested. This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, the pyteomics library function \textit{parser.cleave} was used, for each peptide that was cleaved off, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
 
-The resulting peptides are all in an unmodified state, so for the program to recognize possible modified peptides in a scan from the mzML\cite{mzml} file, it is necessary that for every peptide that has been cleaved from a sequence from the FASTA database file, all its isoforms are generated. Those peptides that contain an "X", i.e. an unspecific amino acid, are ignored. The generating of isoforms is achieved by the pyteomics library function \textit{isoforms} from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Exemplary like in the reference comet run, the static modifications Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
+The resulting peptides are all in an unmodified state, so for the program to recognize possible modified peptides in a scan from the mzML\cite{mzml} file, it is necessary that for every peptide that has been cleaved from a sequence from the FASTA database file, all its isoforms are generated. Isoforms are proteins that have been produced by the same gene and have an identical composition but have a different structure. In this case, isoforms refers to one peptide but with all combinations of post-translational modifications. Those peptides that contain an "X", i.e. an unspecific amino acid, are ignored. The generation of isoforms is achieved by the pyteomics library function \textit{isoforms} from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Exemplary like in the reference comet run, the static modifications Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
 
 For every generated isoform, the mass is calculated. This mass is added to a dictionary as the key if it does not exist in the dictionary yet, and the according peptide as the value. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to list which is sorted by the mass in ascending order [\cref{fig:peptindex}]. The reason for this is that a python dictionary is unordered and "unindexable", and since binary search will be performed in the following on the peptide index, it is necessary to convert the dictionary into an indexable list.
  
@@ -170,7 +188,11 @@ For every generated isoform, the mass is calculated. This mass is added to a dic
 After generating the peptide index list, a pool of user specified amount of processes is created in order to increase performance and use as many computer resources as possible. A \textit{manager} from the python multiprocessing library is used to share the previously generated peptide index between the pool processes. 
 
 The program starts iterating over the spectra inside the mzML sample file, and does so until all spectra are read. It loads user defined amount of spectra into a buffer, which is accessed by the process pool. A process loads one spectrum scan from the buffer and proceeds with the identification, meaning that the peptide index is searched for a possible close match for the spectrum.
-
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/peptindex.png} 
+\caption{Peptide index list generated from the fasta database file}
+\label{fig:peptindex}
+\end{wrapfigure}
 \subsubsection{Filtering of candidate peptides}
 Each single process calls the \textit{identification} function, which does the following:
 It iterates over the tree structure of a scan from the mzML file, and it is first checked whether the MS level is 2, i.e an \(MS^2\) scan, since the file contains scans of various MS levels. If this is the case, the program iterates over all possible precursors, where it first calculates the mass in Dalton of the selected ion from the retrieved mass to charge and charge values. This is done by the calculation \begin{math}(mz * charge) - (hydrogen\_mass * charge)\end{math}.
@@ -179,26 +201,22 @@ The program proceeds with a rough filtering of peptides that can come into quest
 
 The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by performing binary searching on the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454, the slice would be between the second line and the second last line in \cref{fig:peptindex}.
 \begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/peptindex.png} 
-\caption{Peptide index list generated from the fasta database file}
-\label{fig:peptindex}
+\includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
+\caption{Preprocessing the binned arrays before correlation calculation}
+\label{fig:corr}
 \end{wrapfigure}
 
 \subsubsection{Spectrum binning}
 The mass-to-charge values and its corresponding intensities are retrieved as two separate numpy arrays from the mzML file and are sorted in parallel in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
 
-The process continues with what in the original comet implementation is referred to as "binning". First, the values in the intensity array are normalised between 0 and 50. Depending on the bin size, the bin index of a m/z value is calculated by dividing the m/z by the bin width. A numpy bin array is created, its size depending on the biggest m/z value in the m/z array, and since an m/z array from the mzml file can have values up to 2000, the bin array can have a size of 100.000. The bin array is filled with the intensites from the intensity array on the calculated index. In case there are 2 intensities on the same index, like in the comet implemenation, only the highest intensity is stored. Like in comet, the binned experimental array is processed by dividing it into 10 equal sections and normalisation is performed within them.
+The process continues with what in the original comet implementation is referred to as "binning". First, the values in the intensity array are normalised between 0 and 50. Depending on the bin size, the bin index of a m/z value is calculated by dividing the m/z by the bin width. A numpy bin array is created, its size depending on the biggest m/z value in the m/z array, and since an m/z array from the sample mzml file can have values up to 2000, the bin array can have a size of 100.000. The bin array is filled with the intensites from the intensity array on the calculated index. In case there are 2 intensities on the same index, like in the comet implemenation, only the highest intensity is stored. Like in comet, the binned experimental array is processed by dividing it into 10 equal sections and normalisation is performed within them.
 
 The program now proceeds with generating theoretical spectra by computing fragment m/z values for every peptide from the previously retrieved peptide index list slice with candidate peptides. This is done by a seperate function for every peptide in the slice which takes in the peptide as a string and the maximum charge of the selected precursor ion - 1 as the parameters. Like in the initial reference comet run, the maxcharge is limited to 3. The fragmentation function returns a list with m/z values, which is the theoretical spectrum of the candidate peptide, and binned the same way as the spectrum retrieved from the sample mzml file, except that this fragmentation m/z list has no corresponding list containing intensities. In this case the bin array index is calculated the same way, but on the index position the bin array is filled with a 50, and neighboring bins are filled with a value of 25. 
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
-\caption{Preprocessing the binned arrays before correlation calculation}
-\label{fig:corr}
-\end{wrapfigure}
+
 \subsubsection{Peak intensity prediction with MS2PIP}
 In case the user of the tool decides to run the program with predicted spectra instead of the theoretical spectra, the program runs the \textit{predict\_spectrum} function on the peptides. The Pyteomics library and the MS2PIP library have different ways of labeling/marking modifications of a peptide. 
 
-Pyteomics uses the modX peptide representation which is an extension of the standard one letter peptide sequence representation. A modX label is either a regular one letter upper case amino acid or a modified amino acid, which starts with a random amount of lower case letters marking a modification, and ending with a single upper case letter which is the modified amino acid. Examples for a modX Label are "carbC", "oxidM" or "A". MS2PIP uses formatted modification strings to mark modifications of a peptide. An exemplary mod-string is "2|Carbamidomethyl|4|Oxidation|10|Oxidation", where the integer value is the position and string next to it the modification name. In the case that a peptide has no modifications, the string "-" is used. 
+Pyteomics uses the modX peptide representation which is an extension of the standard one letter peptide sequence representation. A modX label is either a regular one letter upper case amino acid or a modified amino acid, which starts with a random amount of lower case letters marking a modification, and ending with a single upper case letter which is the modified amino acid. Examples for a modX Label are "carbC", "oxidM" or "A". MS2PIP uses formatted modification strings to mark modifications of a peptide. An exemplary mod-string is \begin{math}2|Carbamidomethyl|4|Oxidation|10|Oxidation\end{math}, where the integer value is the position and string next to it the modification name. In the case that a peptide has no modifications, the string "-" is used. 
 
 To translate between the two notations, the peptide retrieved from the peptide index has to be parsed by a Pyteomics parser which takes in a Pyteomics formatted peptide string and returns the peptide as a list of labels, this list is then iterated over and a MS2PIP style-formatted modification string is generated. The plain isoform of the peptide and its modification string as well as the specified prediction model which in the default case is HCD, are then fed into the MS2PIP \textit{predict} function, which returns an array of predicted m/z values and its corresponding predicted intensity array, i.e. the predicted spectrum of the peptide.
 
@@ -238,7 +256,7 @@ The scatter plot dots align mostly in a straight diagonal line, which demonstrat
 \label{fig:scatterplot}
 \end{figure}
 
-Now that the scores generated by the Python program using theoretical spectra are close to the scores in Comet, a comparison between scores using predicted spectra with MS2PIP can be done. The scores of the Python program with the theoretical spectra have been plotted against the scores using predicted spectra with the HCD model in \cref{fig:scatterplot_predicted_theoretical}, the \(R^2\) score is -1.019. The HCD Model was used for the reason that it is the default MS2PIP prediction Model and has been trained on the largest training data set. As expected, the correlation between both scorings is low: A theoretical spectrum of a peptide has more peaks than a predicted spectrum, this leads to lower average scores when matching an experimental spectrum with a predicted spectrum..
+Now that the scores generated by the Python program using theoretical spectra are close to the scores in Comet, a comparison between scores using predicted spectra with MS2PIP can be done. The scores of the Python program with the theoretical spectra have been plotted against the scores using predicted spectra with the HCD model in \cref{fig:scatterplot_predicted_theoretical}, the \(R^2\) score is -1.019. The HCD Model was used for the reason that it is the default MS2PIP prediction Model and has been trained on the largest training data set. As expected, the correlation between both scorings is low: A theoretical spectrum of a peptide has more peaks than a predicted spectrum, this leads to lower average scores when matching an experimental spectrum with a predicted spectrum.
 
 \begin{figure}
 \centering
@@ -338,7 +356,7 @@ Memory management is different in Python and C++, while C++ gives the developer 
 
 The difference in runtime optimization is a reason for the speed difference as well: C++ code is optimized mostly at compile time, this can be e.g. loop unrolling or function inlining. Pythons standard interpreter doesn't perform optimization like this. The Type system in both programming languages is different, in C++ the variable data types are static, that means that a variable is assigned a definite data type, which can help the compiler in optimization. Python has the dynamic data type system i.e. the data type of a variable is determined at the runtime, which has a certain time cost.
 
-At this point it needs to be noted that Python was not selected as the programming language for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool, and for the reason of faster an easier prototyping.
+At this point it needs to be noted that Python was not selected as the programming language for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool, and for the reason of faster and easier prototyping.
 
 The fast scoring algorithm of comet has not been implemented in this python version, which is one of the reasons for the slower performance.
 
