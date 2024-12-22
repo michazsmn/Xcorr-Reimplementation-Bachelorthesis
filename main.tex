@@ -7,6 +7,8 @@
 \usepackage{wrapfig}
 \usepackage{subcaption}
 
+\sloppy
+
 \addbibresource{bibliography.bib}
 
 \title{Xcorr Reimplementation Bachelorthesis}
@@ -70,7 +72,7 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for genomics research or diabetes research \cite{ms-diabetes}.
+Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for proteomics research or diabetes research \cite{ms-diabetes}.
 Before mass spectrometry can be performed, the sample has to be prepared meaning that it is turned into a state that is a valid input for the mass spectrometer. This is done by either converting it into a gas phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the Instrument that is used. Mass spectrometers exist in various variants e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}:
 
 \begin{enumerate}
@@ -86,7 +88,7 @@ Proteins are molecules that have various functions in the human body. They can b
 
 Tandem mass spectrometry (MS/MS or \(MS^2\)) can be understood as an extension of mass spectrometry. It is used for the analysis of peptides and involves multiple stages, where in the first stage the entire sample is analysed with a mass spectrometer, then one ion is selected for further analysis and on the next stage only this isolated ion is analysed by another MS run \cite{tandem-mass-spectrometry}. This is realized by connecting two analyzers behind each other in "tandem", which are connected by a collision cell. In the first MS run ions are analyzed, those are the so called "precursor ions" and some of then are selected by their m/z value. The selected precursor ions are then even further fragmented into smaller peptide chains by an inert gas, after which they are let into the second spectrometer \cite{tandem-mass-spec-deutsch, tandem-mass-spec-yt}.
 
-Since every peptide sequence produces its own unique mass spectrum through ion frangemtation (which is explained further below), it can be used as its unique fingerprint to identify it in a sample. 
+Since every peptide sequence produces its own unique mass spectrum through ion fragmentation (which is explained further below), it can be used as its unique fingerprint to identify it in a sample. 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/peptide.png}
@@ -107,12 +109,15 @@ In a mass spectrometer peptide bonds can be broken in different positions of the
 
 A theoretical spectrum of a peptide from a database is created by the b and y series, for this the sums of the first, then first and second, then first, seconds and third etc. amino acids are calculated, until the end of the peptide sequence, for both the b and y ions, considering charges.
 
+\newpage
 % 
 \section{Motivation \& Goals}
 The goal of this work is to combine the Comet cross-correlation scoring algorithm
 with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification, and with this, to find a new and possibly even more accurate method of peptide identification.
 
 As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, it is first of all necessary to translate the Comet cross-correlation scoring algorithm to the python programming language as accurately as possible. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet algorithm, and the to python translated comet. 
+
+\newpage
 
 \section{Methods}
 \subsection{Comet Xcorr in detail}
@@ -134,7 +139,14 @@ Since in 1994 it was not entirely possible to predict the intensities of 'b' and
 
 After the binning stage, the binned experimental sample spectrum is further processed, how exactly this processing works was found out by personal communication by email with the Comet developer Jimmy K. Eng.; The binned experimental spectrum is divided in 10 equal windows, inside of each of these windows, all values are normalised between 0 and 50, meaning that the highest peak receives an intensity of 50, and all other peaks in the bin receive a value relative to it. This is done for the purpose of making the experimental spectrum look similar to the theoretical spectra, and enhance possibly relevant peaks.
 
-For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 m/z and the correlation is determined at each offset. The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+For the Xcorr, the similarity at zero offset is first determined, after that the binned arrays are shifted by $\pm$75 m/z and the correlation is determined at each offset. This operation is called cross-correlation and can be described by the following expression:
+
+\[r_{x,y}(\tau)=\displaystyle\sum_{n=-\infty}^{\infty}x(n)y(n-\tau)\]
+
+Here x and y are the binned experimental and theoretical spectrum arrays and \(tau\) the shift parameter.
+The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
+
+
 
 \subsection{Reference Comet run}
 To later compare the identified peptides and the performance of the original Comet implementation and this implementation, a reference run with the original Comet search tool was performed. The Comet version "2021.01 rev. 0 was used. 
@@ -156,7 +168,6 @@ Random Forest \cite{random-forest} is a regression/classification technique base
 
 The MS2PIP tool is able to predict the m/z values given a peptide (with static and variable modifications) and its precursor charge, and also its intensities. This will be in the following referred to as the "predicted spectrum" of a peptide.
 
-%
 \subsection{Used Python Libraries}
 The following Python packages have been used in the reimplementation:
 \begin{itemize}
@@ -168,6 +179,8 @@ The following Python packages have been used in the reimplementation:
     \item \textit{pandas} (version 1.5.3) . Pandas is a python library for data analysis and data manipulation.
     \item \textit{scikit-learn} (version 1.6.0) This package is used for various scientific purposes like machine learning.
 \end{itemize}
+
+\newpage
 
 \section{Results}
 
@@ -362,14 +375,14 @@ The fast scoring algorithm of comet has not been implemented in this python vers
 
 To detect the optimal amount of processes to use for a computation, the program was run in both theoretical and prediction modes at different amounts of processes, and the execution times were noted. For the prediction mode, multiple MS2PIP models were tested. The execution times are shown in \cref{fig:speed-comparison}. An issue with MS2PIP is that the funtions used from this module seem to starting processes by their own, and this multiprocessing cant be controlled by the user. Which results in a very high amount of processes in total and leads to many processes contending for computation time. The numpy library uses multithreading by default too. This means that running the Python program with too many pool processes will slow it down, which is also demonstrated in \cref{fig:speed-comparison}. The optimal amount of processes to use for the Python program is identified as 4 for the theoretical spectrum matching mode, whose execution time lies at 0:13:13. For the four tested prediction models the optimal amount of processes is identified as 3-4, exemplary, HCD and iTRAQ were run at different amounts of processes for this. Using more or less processes than 4 will not be beneficial for the execution speed. The speed of all prediction models, python theoretical spectrum matching and comet was compared at 4 processes.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
 \includegraphics[width=1\textwidth]{figs/speed-comparison.png}
 \caption{Computation speed comparison for comet and the python reimplementation in both modes and models.}
 \label{fig:speed-comparison}
 \end{figure}
 
-
+\newpage
 
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
@@ -403,6 +416,8 @@ Other prediction tools can be tried in the future with different algorithms.
 
 \subsection{Documentation}
 All source code is provided on \textbf{https://github.com/medbioinf/xcorr-reimplementation}, and for the description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, an HTML documentation with the sphinx tool is generated. The parameters, return types and exception raises are well documented.
+
+\newpage
 
 \printbibliography
 
