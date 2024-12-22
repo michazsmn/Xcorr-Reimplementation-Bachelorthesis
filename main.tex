@@ -143,7 +143,7 @@ For the Xcorr, the similarity at zero offset is first determined, after that the
 
 \[r_{x,y}(\tau)=\displaystyle\sum_{n=-\infty}^{\infty}x(n)y(n-\tau)\]
 
-Here x and y are the binned experimental and theoretical spectrum arrays and \(tau\) the shift parameter.
+Here x and y are the binned experimental and theoretical spectrum arrays and \(\tau\) the shift parameter.
 The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at 0 offset minus background similarity \cite{xcorr-function}.
 
 
@@ -151,9 +151,9 @@ The background similarity is defined by computing the mean of all correlation va
 \subsection{Reference Comet run}
 To later compare the identified peptides and the performance of the original Comet implementation and this implementation, a reference run with the original Comet search tool was performed. The Comet version "2021.01 rev. 0 was used. 
 
- For this reference comet run, LFQ Orbitrap data was used as the sample, specifically in the mzML format, which is a xml based format for storing mass spec scan data. Each scan has a unique scan id and contains binary coded information about the scan start time, MS level, base peak m/z and intensity, lowest and highest observed m/z, the m/z array and the intensity array e.t.c.. In case of a \(MS^2\) scan, it additionally contains information about the selected precursor ion(s) like e.g. its charge state. The exact file was obtained from \textbf{https://ftp.pride.ebi.ac.uk/pride/data/archive/2022/02/PXD028735/}, the name of the used file is "LFQ\_Orbitrap\_DDA\_Human\_01.raw".
+ For this reference comet run, LFQ Orbitrap data was used as the sample, specifically in the mzML format, which is a xml based format for storing mass spec scan data. Each scan has a unique scan id and contains binary coded information about the scan start time, MS level, base peak m/z and intensity, lowest and highest observed m/z, the m/z array and the intensity array e.t.c.. In case of a \(MS^2\) scan, it additionally contains information about the selected precursor ion(s) like e.g. its charge state. The exact file was obtained from \textbf{https://ftp.pride.ebi.ac.uk/pride/data/archive/2022/02/PXD028735/}, the name of the used file is "LFQ\_Orbitrap\_DDA\_Human\_01.raw". The file was converted to the mzML format by msconvert running on docker, vendor peak picking on all MS levels was used.
 
-The search was done against data of the Homo sapiens (Human) proteome in the fasta format which stores protein sequences and serves as the "database". Each protein entry inside the file has a header with a unique name, id and description. The used fasta file was acquired from the uniprot knowledgebase and has the id UP000005640,  \textbf{https://www.uniprot.org/proteomes/UP000005640}
+The search was done against data of the Homo sapiens (Human) proteome in the fasta format which stores protein sequences and serves as the "database". Each protein entry inside the file has a header with a unique name, id and description. The used fasta file was acquired from the uniprot knowledgebase and has the id UP000005640 (\textbf{https://www.uniprot.org/proteomes/UP000005640}).
 
 The number of used processing threads was set to 10, the peptide mass tolerance was set to 20 parts per million (ppm), the amount of missed cleavages was set to 2, the valid ms level is set to two. The run was done with high resolution binning, that means a bin width of 0.02 was used. The variable modification oxidation of the amino acid methionine (M) and static modification carbamidomethylation of cysteine (C) were considered.
 
