@@ -109,7 +109,7 @@ This thesis is revolving around the database searching approach. The general con
 In the collision cell of a mass spectrometer, peptide bonds can be broken in different positions of the peptide, from the N-terminal the a,b,c positions, and from the C-terminal the x,y,z positions. 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=1\textwidth]{figs/ion-frag.png}
+\includegraphics[width=0.7\textwidth]{figs/ion-frag.png}
 \caption{Ion fragmentation \cite{ion-frag}}
 \label{fig:ion-frag}
 \end{figure}
@@ -147,16 +147,14 @@ Since in 1994 it was not entirely possible to predict the intensities of 'b' and
 
 After the binning stage, the binned experimental sample spectrum is further processed, the binned experimental spectrum is divided in 10 equal windows, inside of each of these windows, all values are normalised between 0 and 50, meaning that the highest peak receives an intensity of 50, and all other peaks in the bin receive a value relative to it. This is done for the purpose of making the experimental spectrum look similar to the theoretical spectra, and enhance possibly relevant peaks. This step was not proposed in the inital paper but was implemented with the help of the original authors.
 
-Cross correlation is performed on experimental and theoretical spectra, the function can be described by the following mathematical expression:
+Cross correlation is performed between the binned experimental and theoretical spectra, the function can be described by the following mathematical expression:
 
 \[R_{x,y}(\tau)=\displaystyle\sum_{i=0}^{n-1}x(i)y(i-\tau)\]
 
 Here x and y are the binned experimental and theoretical spectrum arrays and \(\tau\) the shift parameter over the range \(-75 < \tau < 75\).
 
 For the Xcorr score, the similarity at zero offset \(\tau=0\) is first determined, after that the binned arrays are shifted by $\pm$75 m/z and the correlation is determined at each offset.
-The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at \(\tau=0\) minus background similarity \(\overline{-75<\tau<75},\tau\neq0\) \cite{xcorr-function}.
-
-
+The background similarity is defined by computing the mean of all correlation values without the one at zero offset. The xcorr is then similarity at \(\tau=0\) minus the background similarity of \(-75<\tau<75,\tau\neq0\) \cite{xcorr-function}.
 
 \subsection{Reference Comet run}
 To later compare the identified peptides and the performance of the original Comet implementation and this implementation, a reference run with the original Comet search tool was performed. The Comet version "2021.01 rev. 0 was used. 
@@ -211,23 +209,24 @@ For every generated isoform, the mass is calculated. This mass is added to a dic
 After generating the peptide index list, a pool of user specified amount of processes is created in order to increase performance and use as many computer resources as possible. A \textit{manager} from the python multiprocessing library is used to share the previously generated peptide index between the pool processes. 
 
 The program starts iterating over the spectra inside the mzML sample file, and does so until all spectra are read. It loads user defined amount of spectra into a buffer, which is accessed by the process pool. A process loads one spectrum scan from the buffer and proceeds with the identification, meaning that the peptide index is searched for a possible close match for the spectrum.
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/peptindex.png} 
-\caption{Peptide index list generated from the fasta database file}
-\label{fig:peptindex}
-\end{wrapfigure}
+
 \subsubsection{Filtering of candidate peptides}
 Each single process calls the \textit{identification} function, which does the following:
 It iterates over the tree structure of a scan from the mzML file, and it is first checked whether the MS level is 2, i.e an \(MS^2\) scan, since the file contains scans of various MS levels. If this is the case, the program iterates over all possible precursors, where it first calculates the mass in Dalton of the selected ion from the retrieved mass to charge and charge values. This is done by the calculation \begin{math}(mz * charge) - (hydrogen\_mass * charge)\end{math}.
 
 The program proceeds with a rough filtering of peptides that can come into question for the given scan. This is done by a lookup into the peptide index where it is searched for peptides that have a mass close to the mass of the selected precursor ion. The tolerance for a canditate peptide is 20 parts per million (ppm), that means between a mass of $\pm$ (precursor mass * 0.00002). The lower and upper tolerance bounds in Dalton are calculated by the \textit{tolerance\_bounds} function. 
 
-The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by performing binary searching on the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. E.g if the lower bound for the mass is 1033.6777 and the upper bound is 2190.5454, the slice would be between the second line and the second last line in \cref{fig:peptindex}.
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
-\caption{Preprocessing the binned arrays before correlation calculation}
-\label{fig:corr}
-\end{wrapfigure}
+The peptide index is a list meaning that it is indexable, and the masses are sorted in ascending order, that means that it is possible to efficiently get the upper and lower indices of the peptide index entries by performing binary searching on the list. A binary search function is searching for the lower index of the peptide list first, and returns the first index of the list where the mass is $\ge$ the calculated lower bound. The upper index is searched the same way. After getting the upper and lower indices, the process gets a slice from the peptide index including all peptides that are possible candidates for scoring. 
+
+Suppose a scan retrieved from the mzML file has a mass of 2188.8979. With a tolerance of 20ppm this would mean a tolerance between 2093.0724 and 2284.72338 dalton. The binary search function would return the index [35] as the lower, and [38] as the upper index. A slice of peptides is taken  from this peptide index list as \textit{peptide\_index[35:38]}, which means the sliced list contains the peptides with the indices 35-37.
+\cref{fig:peptindex}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1\textwidth]{figs/pepindex.png}
+\caption{Representation of the Peptide index list generated from the FASTA database file. The list indices are in square brackets, followed by the mass and peptides.}
+\label{fig:peptindex}
+\end{figure}
 
 \subsubsection{Spectrum binning}
 The mass-to-charge values and its corresponding intensities are retrieved as two separate numpy arrays from the mzML file and are sorted in parallel in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
@@ -247,7 +246,11 @@ To translate between the two notations, the peptide retrieved from the peptide i
 After the sample spectrum and the theoretical spectrum have been binned, they have to be brought to the same length. This is achieved by filling up the binned theoretical spectrum with zeros in case it is smaller than the binned sample spectrum. If the binned sample array is smaller, it is simply cut to the right length. 
 
 In the Comet implementation the binned sample and binned theoretical spectrum are shifted by $\pm$75 Dalton, which corresponds to a shift size of 75/0.02 bins, where at each overlap the correlation is calculated. This is achieved by appending the shift size amount of zeros on the first and last index on one of the arrays and the \textit{correlate} function from the numpy library with the mode "valid". The resulting array has a size of 3750 + 3750 + 1 = 7501, a shift of 3750 bins in each direction and the dot product at zero offset. The correlation at zero offset corresponds to the entry at index 3750 in the resulting array, which is exactly the middle entry. To calculate the background similarity, the entry at the middle index is removed and the mean over all remaining entries in the correlation array is calculated. The Xcorr score is computed by subtracting the background similarity from the similarity at zero offset, then divided by 10.000.[\cref{fig:corr}].
-
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=\linewidth]{figs/crosscorr.jpg} 
+\caption{Preprocessing the binned arrays before correlation calculation}
+\label{fig:corr}
+\end{wrapfigure}
 \subsubsection{Output}
 The process returns and adds all identified results for a peptide from the sample mzML file to a result list. When the buffer is fully consumed, all results are printed to a TSV file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precursor ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the peptide which can also contain modifications.
 
