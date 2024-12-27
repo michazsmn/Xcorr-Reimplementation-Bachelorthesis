@@ -73,6 +73,8 @@
 \tableofcontents
 \newpage
 
+\newpage\null\thispagestyle{empty}\newpage
+
 \section{Introduction}
 \subsection{Fundamentals}
 Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a chemical substance sample and analysis of its molecules \cite{mass-specrometer}. MS has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence , over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for proteomics research or diabetes research \cite{ms-diabetes}.
@@ -117,9 +119,34 @@ In the collision cell of a mass spectrometer, peptide bonds can be broken in dif
 \end{figure}
 At which of these sites ions are dissociated, is depending on the fragmentation method. When using collision induced fragmentation (CID) or high-energy collisional dissociation (HCD), ions are mostly dissociated at the b and y sites, which is the most common approach in research. For this reason, b and y ion fragmentation is also used in this research too. 
 
-In an \(MS^2\) scan each abundant peak that is noticably larger than the noise peaks, optimally is produced by one fragment ion. When annotating an ion series from the N to C terminal end, the m/z distances are calculated between the most abundant peaks, this can give an insight about one amino acid, and finally the entire peptide sequence \cite{b-y-ions}.
+In an \(MS^2\) scan each abundant peak that is noticably larger than the noise peaks, optimally is produced by one b or y fragment ion. When annotating an ion series from the N to C terminal end, the m/z distances are calculated between the most abundant peaks, this can give an insight about one amino acid, and finally the entire peptide sequence \cite{b-y-ions}.
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.47\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figs/bions.png}
+         \caption{}
+         \label{fig:b-ions}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.47\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figs/yions.png}
+         \caption{}
+         \label{fig:y-ions}
+     \end{subfigure}
+    \caption{b and y ions for the peptide "GLSDGEWQQVLNVWGK" \cref{fig:b-y-ions}.}
+    \label{fig:b-y-ions}
+\end{figure}
 
-A theoretical spectrum of a peptide from a database is created by the b and y series, for this the sums of the first, then first and second, then first, seconds and third etc. amino acids are calculated, until the end of the peptide sequence, for both the b and y ions, considering charges.
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figs/fragment-ion-table.png}
+\caption{Fragmentation table for the peptide "GLSDGEWQQVLNVWGK" with charge state 1 \cref{fig:b-y-ions}.}
+\label{fig:fragment-table}
+\end{figure}
+A theoretical spectrum of a peptide from a database is created by the b and y series, for this the sums of the masses of the first, then first and second, then first, seconds and third etc. amino acids are calculated, from the N terminal for the b-ions, and from the C terminal for the y-ions. This is done until the end of the peptide sequence, considering charge states. [\cref{fig:b-y-ions}] shows all b and y ions for the peptide "GLSDGEWQQVLNVWGK".
+The m/z of each b and y ion for this peptide are shown in \cref{fig:fragment-table} for the charge state 1. These values are forming the theoretical spectrum of the peptide. 
 
 \newpage
 
@@ -136,7 +163,13 @@ As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Ap
 Comet is an open source proteomics Tandem \(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington that was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. For the peptide identification the tool computes multiple scores that evaluate how similar a sample peptide spectrum is to a peptide spectrum from a protein database that it is compared to. One of these scores is the "Xcorr", which will be the focus of this thesis. 
 
 
-To calculate the Xcorr value and other scores the algorithm first performs \textit{in silico} digestion of proteins from a database, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme Trypsin, and are called "tryptic peptides". Comet then filters these peptides that have been cleaved off from the database proteins. If a experimental MS2 spectrum has a precursor ion mass of e.g 1500 dalton, the algorithm considers only those peptides from the database that have a mass close to it, e.g with a tolerance of $\pm$20 ppm (parts per million), meaning that a peptide with a mass of e.g. 1500.001 would be selected for further analysis. All database peptides outside of this mass boundary are discarded.
+To calculate the Xcorr value and other scores the algorithm first performs \textit{in silico} digestion of proteins from a database, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme Trypsin, and are called "tryptic peptides". Comet then filters these peptides that have been cleaved off from the database proteins. The Filter works like follows:
+\begin{enumerate}
+    \item For a scan of the mzML, the mass in m/z and charge state are retrieved, e.g. 1500m/z and charge of 2.
+    \item The mass in m/z is converted to a mass in dalton by the formula \begin{math}(mz * charge) - (hydrogen\_mass * charge)\end{math}, that means (1500 * 2) - (1.00794 * 2) = 2997.98412 da.
+    \item The upper and lower boundaries for filtering are calculated, with a tolerance of $\pm$20 ppm (parts per million) the lower boundary is 2997.98412 - 2997.98412 * 0.00002 = 2997.92416 and the upper boundary 2997.98412 + 2997.98412 * 0.00002 = 2998.04408
+    \item Cleaved off peptides between a mass of 2997.92416 and 2998.04408 are filtered for further processing
+\end{enumerate}
 
 For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the theoretical spectrum \cite{comet-first-paper}. 
 
