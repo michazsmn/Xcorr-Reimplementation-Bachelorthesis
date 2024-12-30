@@ -283,7 +283,7 @@ In case the user of the tool decides to run the program with predicted spectra i
 
 The Pyteomics library and the MS2PIP library have different ways of labeling/marking modifications of a peptide: Pyteomics uses the modX peptide representation which is an extension of the standard one letter peptide sequence representation. A modX label is either a regular one upper case letter representing an amino acid or a modified amino acid, which starts with a random amount of lower case letters marking a modification, and ending with a single upper case letter which is the modified amino acid. Examples for a modX Label are "carbC", "oxidM" or "A". The 3.13.0 version of MS2PIP uses formatted modification strings to mark modifications of a peptide. An exemplary mod-string is \begin{math}2|Carbamidomethyl|4|Oxidation|10|Oxidation\end{math}, where the integer value is the position and string next to it the modification name. In the case that a peptide has no modifications, the string "-" is used. 
 
-To translate between the two notations, the peptide retrieved from the peptide index has to be parsed by a Pyteomics parser which takes in a Pyteomics formatted peptide string and returns the peptide as a list of labels, this list is then iterated over and a MS2PIP style-formatted modification string is generated. The plain isoform of the peptide and its modification string as well as the specified prediction model which in the default case is HCD, are then fed into the MS2PIP \textit{predict} function, which returns an array of predicted m/z values and its corresponding predicted intensity array, i.e. the predicted spectrum of the peptide.
+To translate between the two notations, the peptide retrieved from the peptide index has to be parsed by a Pyteomics parser which takes in a Pyteomics formatted peptide string and returns the peptide as a list of labels, this list is then iterated over and a MS2PIP style-formatted modification string is generated. The plain version of the peptide without any modifications and its modification string as well as the specified prediction model which in the default case is HCD, are then fed into the MS2PIP \textit{predict} function, which returns an array of predicted m/z values and its corresponding predicted intensity array, i.e. the predicted spectrum of the peptide.
 
 \subsubsection{Xcorr scoring}
 After the sample spectrum and the theoretical spectrum have been binned, they have to be brought to the same length. This is achieved by filling up the binned theoretical spectrum with zeros in case it is smaller than the binned sample spectrum. If the binned sample array is smaller, it is simply cut to the right length [\cref{fig:corr} (B)].
@@ -295,7 +295,7 @@ In the Comet implementation the binned sample and binned theoretical spectrum ar
 \label{fig:corr}
 \end{wrapfigure}
 \subsubsection{Output}
-The process returns and adds all identified results for a peptide from the sample mzML file to a result list. When the buffer is fully consumed, all results are printed to a TSV file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precursor ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, the amount of total ions of the theoretical spectrum and the peptide which can also contain modifications.
+The process returns and adds all identified results for a peptide from the sample mzML file to a result list. When the buffer is fully consumed, all results are printed to a TSV file in tab separated format. One result consists of the scan number which is unique for every entry inside of the sample mzml file, the charge of the precursor ion, the mass of the experimental neutral precursor ion from the mzml file, the calculated neutral mass of the theoretical peptide that has been selected for matching, the Xcorr score, the amount of matched ions, meaning the amount of sites where on zero shift there are non-zero values in both binned arrays, and the amount of total ions of the theoretical spectrum and the peptide which can also contain modifications.
 
 \subsubsection{CLI}
 To make usage comfortable, a CLI is implemented. This was done with the help of the Typer Python library. The general usage is defined as "python xcorrcli.py [OPTIONS] SAMPLE\_FILENAME PROTEIN\_DATABASE" in the terminal, where "SAMPLE\_FILENAME" is a required argument and placeholder for the sample filename in the mzML format as a string, and "PROTEIN\_DATABASE" the string for the database filename respectively, in the FASTA format. 
@@ -328,72 +328,75 @@ The scatter plot dots align mostly in a straight diagonal line, which demonstrat
 
 Now that the scores generated by the Python program using theoretical spectra are close to the scores in Comet, a comparison between scores using predicted spectra with MS2PIP can be done. The scores of the Python program with the theoretical spectra have been plotted against the scores using predicted spectra with the HCD model of MS2PIP in [\cref{fig:scatterplot_predicted_theoretical}]. The HCD Model was used for the reason that it is the default MS2PIP prediction Model and has been trained on the largest training data set. As expected, the correlation between both scorings is low: A theoretical spectrum of a peptide has more peaks than a predicted spectrum, this leads to lower average scores when matching an experimental spectrum with a predicted spectrum.
 
-\begin{figure}
-\centering
-\begin{subfigure}[b]{1\textwidth}
-    \centering
-    \includegraphics[width=0.7\textwidth]{figs/scatterplot_predicted_theoretical.png}
-   \caption{}
-   \label{fig:scatterplot_predicted_theoretical} 
-\end{subfigure}
-\begin{subfigure}[b]{1\textwidth}
-    \centering
-   \includegraphics[width=0.7\textwidth]{figs/scatterplot_windows.png}
-   \caption{}
-   \label{fig:scatterplot_windows}
-\end{subfigure}
-\caption{(a):Scatterplot between the scores using theoretical spectra and predicted spectra in the python re-implementation. For each scan number in the results only the highest xcorr value was selected[\cref{fig:output}]. The dot representing scan 130781 is marked red.}
-\label{scatterplot_python}
-\end{figure}
-An example for a good match is shown in [\cref{predandtheo}]. %This comparison was made without the window normalisation step described in section \ref{SpectBinningChapter}, and normalisation was performed over the entire m/z interval. 
-The blue peaks represent the experimental spectrum from the scan 71120, and the red peaks are the theoretical spectrum for the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK". Most of the red theoretical spectrum peaks in [\cref{predandtheo}(a)] align with the most abundant blue peaks. In this case, 60 of the total 140 red theoretical spectrum ion peaks match a blue experimental spectrum peak. 
 
-For the predicted spectrum matching in [\cref{predandtheo}(b)] for the same scan, 70 red peaks were predicted in total by MS2PIP, 25 of which are matching the peaks of the blue experimental spectrum.
-
-[\cref{predandtheocorr}] demonstrates that the highest correlation was calculated at zero offset of both the experimental and theoretical/predicted spectra. There are notably fewer background similarity peaks in the correlation array of the predicted spectrum, demonstrating that the predicted spectrum is more accurate than the theoretical one, and contains less noise.
-
-All of this are high indicators that the experimental spectrum with scan number 71120 might indeed be produced by the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK".
-
-Despite the predicted spectrum closely matching the experimental spectrum in [\cref{fig:predict}], the score is much lower than the score for the theoretical spectrum match. This score is also not high in comparison to other scores using predicted spectra, which go up to values of 3. This is caused by the normalisation of the entire spectrum to the highest peak, in [\cref{fig:predict}] exist three peaks that are significantly more abundant than the rest of the peaks, which are very small in comparison. The products between most of the binned array entries are low, which leads to a low Xcorr score. This is also apparent in [\cref{fig:scatterplot_predicted_theoretical}], which shows that there is almost no correlation between the scores for the predicted and theoretical matching. The reason for this is that peptide prediction generally generates less ions than in a theoretical spectrum, and the intensities of a predicted spectrum can have values between 0 and 50, whereas a theoretical spectrum contains intensities of only 50 and 25.
-
-To address this problem, the same window normalisation approach for predicted spectrum matching is used as in the theoretical spectrum matching. Instead of normalising both predicted and experimental spectra to the highest peak over the entire m/z interval, both of the predicted and experimental spectra are divided into ten equally long windows, and on each of these windows, normalisation is performed. [\cref{fig:scatterplot_windows}] shows the correlation of the scores after applying window normalisation. The correlation is still low, but it is more restrained in the diagonal direction. The scores for the predicted peptide matching have also been lifted up by this. The plot for the scan 71120 after performing window normalisation on predcited and experimental spectrum is shown in [\cref{fig:scanwin}]. The \(R^2\) value is calculated as 0.6717.
 
 \begin{figure}
 \centering
 \begin{subfigure}[b]{1\textwidth}
 \centering
     \includegraphics[width=0.92\textwidth]{figs/scan_71120_ps=False.png}
-   \caption{}
-   \label{fig:theo} 
+   \caption{Plot of an experimental processed spectrum (blue) and theoretical spectrum for peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK" (red) for scan 71220.}
+   \label{fig:theo_71120} 
 \end{subfigure}
 \begin{subfigure}[b]{1\textwidth}
 \centering
    \includegraphics[width=0.92\textwidth]{figs/scan_71120_ps=True.png}
-   \caption{}
-   \label{fig:predict}
+   \caption{Experimental (blue) and predicted spectrum for peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK" (red) for scan 71220}
+   \label{fig:predict_71120}
 \end{subfigure}
-
-\caption{(a): Plot of an experimental processed spectrum (blue) and theoretical spectrum for peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK" (red) for scan 71220. (b): experimental (blue) and predicted spectrum for peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK" (red) for scan 71220 in [\cref{fig:output}]. The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are represented negative only for visualization purposes.}
-\label{predandtheo}
+\caption{Theoretical and predicted spectrum matching for scan 71120 in [\cref{fig:output}]. The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are represented negative only for visualization purposes.}
+\label{fig:predandtheo_71120}
 \end{figure}
+
+An example for a good match is shown in [\cref{fig:predandtheo_71120}]. %This comparison was made without the window normalisation step described in section \ref{SpectBinningChapter}, and normalisation was performed over the entire m/z interval. 
+The blue peaks represent the experimental spectrum from the scan 71120, and the red peaks are the theoretical spectrum for the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK". Most of the red theoretical spectrum peaks in [\cref{fig:theo_71120}] align with the most abundant blue peaks. In this case, 60 of the total 140 red theoretical spectrum ion peaks match a blue experimental spectrum peak. 
+
+For the predicted spectrum matching in [\cref{fig:predict_71120}] for the same scan, 70 red peaks were predicted in total by MS2PIP, 25 of which are matching the peaks of the blue experimental spectrum.
+
+[\cref{predandtheocorr}] demonstrates that the highest correlation was calculated at zero offset of both the experimental and theoretical/predicted spectra. There are notably fewer background similarity peaks in the correlation array of the predicted spectrum, demonstrating that the predicted spectrum is more accurate than the theoretical one, and contains less noise.
+
+All of this are high indicators that the experimental spectrum with scan number 71120 might indeed be produced by the peptide "LAADEDDDDDDEEDDDEDDDDFDDEEAEEKAPVK".
+
+Despite the predicted spectrum closely matching the experimental spectrum in [\cref{fig:predict_71120}], the score is much lower than the score for the theoretical spectrum match. This score is also not high in comparison to other scores using predicted spectra, which go up to values of 3. This is caused by the normalisation of the entire spectrum to the highest peak, in [\cref{fig:predict_71120}] exist three peaks that are significantly more abundant than the rest of the peaks, which are very small in comparison. The products between most of the binned array entries are low, which leads to a low Xcorr score. This is also apparent in [\cref{fig:scatterplot_predicted_theoretical}], which shows that there is almost no correlation between the scores for the predicted and theoretical matching. The reason for this is that peptide prediction generally generates less ions than in a theoretical spectrum, and the intensities of a predicted spectrum can have values between 0 and 50, whereas a theoretical spectrum contains intensities of only 50 and 25.
+
+To address this problem, the same window normalisation approach for predicted spectrum matching is used as in the theoretical spectrum matching. Instead of normalising both predicted and experimental spectra to the highest peak over the entire m/z interval, both of the predicted and experimental spectra are divided into ten equally long windows, and on each of these windows, normalisation is performed. [\cref{fig:scatterplot_windows}] shows the correlation of the scores after applying window normalisation. The correlation is still low, but it is more restrained in the diagonal direction, and the \(R^2\) value is calculated as 0.6717. The scores for the predicted spectrum matching have also been lifted up by this. The plot for the scan 71120 after performing window normalisation on predcited and experimental spectrum is shown in [\cref{fig:scanwin}].
 
 \begin{figure}
 \centering
 \begin{subfigure}[b]{1\textwidth}
 \centering
     \includegraphics[width=0.95\textwidth]{figs/corrtheo.png}
-   \caption{}
+   \caption{Plot of correlation array returned by the numpy \textit{correlate} function for match with theoretical spectrum.}
    \label{fig:corrtheo} 
 \end{subfigure}
 \begin{subfigure}[b]{1\textwidth}
 \centering
    \includegraphics[width=0.95\textwidth]{figs/corrpredict.png}
-   \caption{}
+   \caption{Plot of correlation array returned by the numpy \textit{correlate} function for match with predicted spectrum.}
    \label{fig:corrpredict}
 \end{subfigure}
-\caption{(a): Plot of correlation array returned by the numpy \textit{correlate} function for match with theoretical spectrum (b): with predicted spectrum. The x-axis represents the correlation array index, the y-axis the correlation.}
+\caption{Plots of the correlation arrays for theoretical and predicted spectrum matching for scan 71120. The x-axis represents the correlation array index, the y-axis the correlation.}
 \label{predandtheocorr}
 \end{figure}
+
+\begin{figure}
+\centering
+\begin{subfigure}[b]{1\textwidth}
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/scatterplot_predicted_theoretical.png}
+   \caption{Scatterplot between the scores using theoretical spectra and predicted spectra in the python re-implementation, before window normalisation}
+   \label{fig:scatterplot_predicted_theoretical} 
+\end{subfigure}
+\begin{subfigure}[b]{1\textwidth}
+    \centering
+   \includegraphics[width=0.7\textwidth]{figs/scatterplot_windows.png}
+   \caption{Scatterplot between the scores using theoretical spectra and predicted spectra in the python re-implementation, after window normalisation}
+   \label{fig:scatterplot_windows}
+\end{subfigure}
+\caption{Scatterplot between the scores using theoretical spectra and predicted spectra in the python re-implementation, before and after window normalisation. For each scan number in the results only the highest Xcorr value was selected[\cref{fig:output}]. The dot representing scan 130781 is marked red.}
+\label{scatterplot_python}
+\end{figure}
+
 
 \begin{figure}[ht]
 \centering
@@ -426,21 +429,19 @@ The scan 71120 ranked first using theoretical spectrum matching mode, while with
 \begin{subfigure}[b]{1\textwidth}
 \centering
     \includegraphics[width=0.92\textwidth]{figs/scan_130781_ps=False_.png}
-   \caption{}
+   \caption{Plot of experimental processed spectrum (blue) and theoretical spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781}
    \label{fig:theo} 
 \end{subfigure}
 \begin{subfigure}[b]{1\textwidth}
 \centering
    \includegraphics[width=0.92
    \textwidth]{figs/scan_130781_ps=True_HCD.png}
-   \caption{}
+   \caption{Plot of experimental processed spectrum (blue) and predicted spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781}
    \label{fig:predict}
 \end{subfigure}
-
-\caption{(a): Plot of an experimental processed spectrum (blue) and theoretical spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781. (b): experimental (blue) and predicted spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781 in \cref{fig:output} . The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are represented negative only for visualization purposes.}
+\caption{Experimental and theoretical/predicted spectra of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" for scan 130781 in [\cref{fig:output}] . The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are represented negative only for visualization purposes.}
 \label{fig:scan130781}
 \end{figure}
-
 [\cref{fig:scan130781}] shows an example of a scan, where the matching with the predicted spectrum produced a more noticable score than with theoretical spectrum matching. The scan 130781 has ranked first using the HCD prediction model, whereas using theoretical spectra, this scan ranked 124th [\cref{fig:ident-comparison}]. In [\cref{fig:scatterplot_windows}] the dot that represents this scan is marked red. This dot deviates the most from the "correlation diagonal" in the positive direction.
 
 \subsubsection{Performance comparison}
