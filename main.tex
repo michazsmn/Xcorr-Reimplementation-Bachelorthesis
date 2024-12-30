@@ -77,7 +77,7 @@
 
 \section{Introduction}
 \subsection{Fundamentals}
-Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of components in a chemical substance sample, and analysis of its molecules \cite{mass-specrometer}. Mass Spectrometry has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence, over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for proteomics research or diabetes research \cite{ms-diabetes}.
+Mass Spectrometry (MS) is a method for measuring the mass to charge ratios (m/z) of chemical substance samples, and analysis of its molecules \cite{mass-specrometer}. Mass Spectrometry has a variety of applications \cite{ms-applications} reaching from forensic analysis, where it is used to trace evidence, over environmental analysis, for example to keep track of pollution or test drinking water, to clinical purposes where MS is used for proteomics research or diabetes research \cite{ms-diabetes}.
 Before Mass Spectrometry can be performed, the sample has to be prepared, meaning that it is turned into a state that is a valid input for the mass spectrometer. This is done by either converting it into a gaseous phase for Gas Chromatography or into a liquid phase for Liquid Chromatography. In Gas chromatography the molecular components are separated by vaporization and dilution of the sample on basis of attributes like weight, size, or boiling point. Liquid chromatography on the contrary separates components on basis of how fast they travel trough a liquid phase, this can be for example because of the difference of the polarity of the liquid phase and the components of the sample. Of course, the exact workflow is dependant on the instrument that is used. Mass spectrometers exist in various variants, e.G. MALDI-TOF MS, Triple Quadrupole MS, Hybrid Linear Ion Trap Orbitrap MS etc.  \cite{mass-specrometer-types} however regardless of their type they usually follow the same steps \cite{mass-specrometer, what-is-mass-spectrometry}:
 
 \begin{enumerate}
@@ -87,7 +87,7 @@ chromatography is electrospray chromatography where the liquidified sample is sp
 \item After the sorting of the ions a detection system determines the relative abundances for each observed mass-to-charge (m/z) value. The m/z value is the mass of a particle divided by its electrical charge
 \end{enumerate} 
 
-The output is a mass spectrum which is an array/matrix that yields the m/z values and their abundances. The abundances are commonly normalised to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it [\cref{fig:peptide-example}]. 
+The output is a mass spectrum which is an array/matrix that yields the m/z values and their abundances. The abundances are commonly normalized to the highest abundance peak in the spectrum, meaning that the highest peak is 1 and all other peaks have a value relative to it [\cref{fig:peptide-example}]. 
 
 Proteins are molecules that have various functions in the human body. They can be in the form of an Antibody, which regulate immune responsivity, by binding to antigens like bacteria or viruses and leading to their destruction. They can also be enzymes, that help regulating metabolism and help with the creation of new molecules by reading the DNA. Proteins can also have a transport function, e.g. communication between cells. Proteins are made out of peptides, which are amino acids chains connected by peptide bonds. There are 20 amino acids in the human body which code every type of protein. Amino acids contain a central Carbon molecule which is bound to an amino group and a carboxylic acid group, hence the name amino acid. 
 
@@ -97,15 +97,16 @@ Since every peptide sequence produces its own unique mass spectrum through ion f
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/peptide.png}
-\caption{Measured \(MS^2\) spectrum retireved from the human genome}
+\caption{Measured \(MS^2\) spectrum retrieved from the human genome. The x-axis represents the m/z values and the y-axis the intensities. The intensities are normalized to the highest value between 0 and 1.}
 \label{fig:peptide-example}
 \end{figure}
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/database_search.jpg}
-\caption{Peptide identification with the database searching approach \cite{Nesvizhskii2007}}
+\caption{Peptide identification with the database searching approach \cite{Nesvizhskii2007}.}
 \label{fig:database-search}
 \end{figure}
+
 Tandem MS searching is used for peptide identification within a mass spectrometry scan. Proteomics software that deals with the problem of identifying protein/peptide identification can fall into the category of database searching, where the search is performed against a database of known proteins, and \textit{de novo} searching, where peptides are deduced without a database. The \textit{de novo} approach is typically less accurate than the database method, while the database method works only if the selected database with which the search is done, indeed contains the searched proteins/peptides.
 
 This thesis is revolving around the database searching approach. The general concept of tandem MS database searching is described in [\cref{fig:database-search}]. A spectrum of an experimental precursor ion from a \(MS^2\) run generated by an unknown peptide sequence has a certain mass, if peptides retrieved from a protein database have a mass close to the experimental peptide, the \(MS^2\) spectrum is compared to their "theoretical spectra". To understand how a theoretical spectrum is generated, it is first necessary to understand the concept of ion fragmentation. 
@@ -152,20 +153,19 @@ The m/z of each b and y ion fragments for this peptide are shown in [\cref{fig:f
 
 \section{Motivation \& Goals}
 The goal of this work is to combine the cross-correlation scoring algorithm of the Comet database search tool
-with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification. Since Comet uses theoretical spectra without intensity abundances, and MS2PIP uses predicted spectra with predicted intensity abundances and predicted m/z for scoring, this could potentially lead to better results in identification. With this, this research aims to find a new and possibly even more accurate method of peptide identification.
+with the peptide intensity prediction of MS2PIP to reveal whether replacing the Comet generated theoretical spectrum with the predicted spectrum of MS2PIP will yield better results in peptide identification. Since Comet uses theoretical spectra without intensity abundances, and MS2PIP uses predicted spectra with predicted intensities and predicted m/z for scoring, this could potentially lead to better results in identification. With this, this research aims to find a new and possibly even more accurate method of peptide identification.
 
-As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, the Comet cross-correlation scoring algorithm is translated to the python programming language as accurately as possible for fast prototyping. Next, the theoretical spectrum containing only m/z values without any abundances created by comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet Xcorr algorithm, and the to python translated comet Xcorr algorithm. 
+As Comet is written in the C/C++ Programming Languages and MS2PIP is a Python Api, the Comet cross-correlation scoring algorithm is translated to the python programming language as accurately as possible for fast prototyping. Next, the theoretical spectrum containing only m/z values without any abundances created by Comet will be replaced by the predicted spectrum of MS2PIP. Performance regarding computational speed and identified peptides will be then compared to the initial comet Xcorr algorithm, and the to python translated Comet Xcorr algorithm. 
 
 \newpage
 
 \section{Methods}
 \subsection{Comet Xcorr in detail}
-Comet is an open source proteomics Tandem \(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington, which was written in 1994 \cite{comet-search-tool}. It supports multithreading and is highly parametrizable. For the peptide identification, the tool computes multiple scores that evaluate how similar a experimental peptide spectrum is to a peptide theoretical spectrum from a protein database that it is compared to. One of these scores is the "Xcorr", which will be the focus of this thesis. 
-
+Comet is an open source proteomics Tandem \(MS^2\) database search algorithm/tool written in C++ for searching spectrum data against sequence databases and identification of peptides, that in 2012 emerged from the SEQUEST database search tool from the University of Washington, which was written in 1994 \cite{comet-first-paper, comet-search-tool}. It supports multithreading and is highly parametrizable. For the peptide identification, the tool computes multiple scores that evaluate how similar a experimental peptide spectrum is to a peptide theoretical spectrum from a protein database that it is compared to. One of these scores is the "Xcorr", which will be the focus of this thesis. 
 
 To calculate the Xcorr value and other scores the algorithm first performs \textit{in silico} digestion of proteins from a database, meaning that the function of the human digestive system is simulated. In the human body peptides that are too large for the small intestine are cleaved by the enzyme Trypsin, and are called "tryptic peptides". Comet then filters these peptides that have been cleaved off from the database proteins. The Filter works like follows:
 \begin{enumerate}
-    \item For a scan of the mzML, the mass in m/z and charge state are retrieved, e.g. 1500m/z and charge of 2.
+    \item For a scan of an experimental input file, the mass in m/z and charge state are retrieved, e.g. 1500m/z and charge of 2.
     \item The mass in m/z is converted to a mass in dalton by the formula \begin{math}(mz * charge) - (hydrogen\_mass * charge)\end{math}, that means (1500 * 2) - (1.00794 * 2) = 2997.98412 da.
     \item The upper and lower boundaries for filtering are calculated, with a tolerance of $\pm$20 ppm (parts per million) the lower boundary is 2997.98412 - 2997.98412 * 0.00002 = 2997.92416 and the upper boundary 2997.98412 + 2997.98412 * 0.00002 = 2998.04408
     \item Cleaved off peptides between a mass of 2997.92416 and 2998.04408 are filtered for further processing
@@ -173,11 +173,11 @@ To calculate the Xcorr value and other scores the algorithm first performs \text
 
 For these filtered peptides it is assumed that one of them could possibly have generated the sample mass spectrum. The program constructs a spectrum from the peptides by generating all possible m/z values from the 'b' and 'y' series of the peptide, which in the following will be referred to as the theoretical spectrum \cite{comet-first-paper}. 
 
-In the next step Comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, Comet uses the cross correlation approach. Before the cross correlation can be computed, comet preprocesses the sample and theoretical spectrum by a process called "binning". This is described in [\cref{fig:binning}], the bin width in this example is 1 and is represented by the x-axis. In the figure there are two peaks in the bin index 500, that means these peaks have an m/z float value between 500 and 501, e.g 500.1654 and 500.245, and its intensities are 5 and 1. If a bin contains more than one peak, only the highest peak is saved in the array bin. In this case the first peak with the intensity of 5 is saved on the index 500, which means spec[500] = 5. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. 
+In the next step Comet computes how similar the sample mass spectrum is to the obtained theoretical spectrum. In science many methods for the computation of similarity between signals are used, e.g euklidean distance or frequency domain analysis, Comet uses the cross correlation approach. Before the cross correlation can be computed, Comet preprocesses the sample and theoretical spectrum by a process called "binning". This is described in [\cref{fig:binning}], the bin width in this example is 1 and is represented by the x-axis. In the figure there are two peaks in the bin index 500, that means these peaks have an m/z float value between 500 and 501, e.g 500.1654 and 500.245, and its intensities are 5 and 1. If a bin contains more than one peak, only the highest peak is saved in the array bin. In this case the first peak with the intensity of 5 is saved on the index 500, which means spec[500] = 5. Comet has the option to perform binning with low resolution i.e. a bin size of 1.0005, or high resolution with a bin size of 0.02. 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1\textwidth]{figs/binning.png}
-\caption{The Comet spectrum preprocessing in comet, resulting in a "binned" spectrum \cite{deeper-look-into-comet}. An example experimental Mass Spectrum is shown on the left, the generated binned array representation is displayed on the right.}
+\caption{The spectrum preprocessing in Comet, resulting in a "binned" spectrum \cite{deeper-look-into-comet}. An example experimental Mass Spectrum is shown on the left, the generated binned array representation is displayed on the right.}
 \label{fig:binning}
 \end{figure}
 Since in 1994 it was not entirely possible to predict the intensities of 'b' and 'y' ions, the theoretical spectrum is assigned intensities of 50 on the b and y ion generated m/z positions \cite{deeper-look-into-comet}. For the sake of slightly increasing tolerance and making the theoretical spectrum peaks similar to a "bell shape", neighboring m/z values, meaning $\pm$1 m/z, receive an intensity of 25 and are called "flanking peaks". 
@@ -218,7 +218,7 @@ The predicted peak intensities were retrieved as the average of all regression t
 The MS2PIP tool is able to predict the m/z values given a peptide (with static and variable modifications) and its precursor charge, and also its intensities. This will be in the following referred to as the "predicted spectrum" of a peptide.
 
 \subsection{Used Python Libraries}
-The following Python packages have been used in the reimplementation:
+The following Python packages have been used in the re-implementation:
 \begin{itemize}
     \item \textit{typer} (version 0.15.1) is a tool for building CLI's.
     \item \textit{pyteomics} (version 4.7.5) This package contains many tools for analysis of proteomics data \cite{pyteomics, pyteomics-five-years}
@@ -233,16 +233,16 @@ The following Python packages have been used in the reimplementation:
 
 \section{Results}
 
-\subsection{Reimplementation of the Xcorr algorithm in Python}
+\subsection{Re-implementation of the Xcorr algorithm in Python}
 As already mentioned in the Goals section, Python is selected as the programming language for this work.
 
 \subsubsection{Reading in Spectrum data}
-To compare the reimplementation with the original Comet Xcorr algorithm, the exact same mzML and FASTA files were used as in the reference Comet run. Acessing these files with Python was done with the help of the pyteomics Python framework. Pyteomics has built in functions for parsing mzML and FASTA files. The \textit{fasta.read} function returns an iterator of tuples, of which the first entry is the header and the second one the sequence. The \textit{mzml.read} function returns an iterator with spectrum properties.
+To compare the re-implementation with the original Comet Xcorr algorithm, the exact same mzML and FASTA files were used as in the reference Comet run. Acessing these files with Python was done with the help of the pyteomics Python framework. Pyteomics has built in functions for parsing mzML and FASTA files. The \textit{fasta.read} function returns an iterator of tuples, of which the first entry is the header and the second one the sequence. The \textit{mzml.read} function returns an iterator with spectrum properties.
 
 \subsubsection{Creating a peptide index list}
 For efficient identification of peptides it is first necessary to create a compact list that contains all masses, and peptides that have this mass, from the FASTA database file. In the following this list will be referred to as the "peptide index". While iterating through the FASTA database, the retrieved sequences are \textit{in silico} digested. This digestion is realized by cutting the sequences after the amino acids Arginie (R) and Lysine (K), except for those sites where R or K are followed by Proline (P). The general regular expression for this is "(?$<$=[KR])(?!P)". For this matter, the pyteomics library function \textit{parser.cleave} was used, for each peptide that was cleaved off, the resulting peptide length is restricted between 6 and 50 amino acids, and a maximum of 2 missed cleavages is allowed, meaning that at most two spots that are matched by the regular expression are "overlooked". 
 
-The resulting peptides are all in an unmodified state, so for the program to recognize possible modified peptides in a scan from the mzML file, it is necessary that for every peptide that has been cleaved from a sequence from the FASTA database file, all its isoforms are generated. Isoforms are proteins that have been produced by the same gene and have an identical composition but have a different structure. In this case, isoforms refers to one peptide but with all possible combinations of post-translational modifications. Those peptides that contain an "X", i.e. an unspecific amino acid, are ignored. The generation of isoforms is achieved by the pyteomics library function \textit{parser.isoforms} from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Exemplary like in the reference comet run, the static modifications Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
+The resulting peptides are all in an unmodified state, so for the program to recognize possible modified peptides in a scan from the mzML file, it is necessary that for every peptide that has been cleaved from a sequence from the FASTA database file, all its isoforms are generated. Isoforms are proteins that have been produced by the same gene and have an identical composition but have a different structure. In this case, isoforms refers to one peptide but with all possible combinations of post-translational modifications. Those peptides that contain an "X", i.e. an unspecific amino acid, are ignored. The generation of isoforms is achieved by the pyteomics library function \textit{parser.isoforms} from the parser module, which takes in one peptide cleaved from the database at a time, applies fixed modifications i.e. modifications that are always applied, and variable modfications, for which all possible combinations are generated. Exemplary like in the reference Comet run, the static modifications Carbamidomethylation of Cysteine (C) as well as the variable modification Oxidation of Methionine (M) have been taken into account. The amount of maximum modifications is set to three, meaning that in one peptide at most three amino acids can be affected by a variable modification.
 
 For every generated isoform, the mass is calculated. This mass is added to a dictionary as the key if it does not exist in the dictionary yet, and the according peptide as the value. Since multiple peptides can have the same mass, it is possible that for a mass/key value are multiple peptides stored. Next, the dictionary is converted to a list which is sorted by the mass in ascending order [\cref{fig:peptindex}]. The reason for this is that python dictionaries are unordered and "unindexable", and since binary search will be performed in the following on the peptide index, it is necessary to convert the dictionary into an indexable list.
  
@@ -271,12 +271,12 @@ Suppose a scan retrieved from the mzML file has a precursor ion mass of 2188.897
 \subsubsection{Spectrum binning}\label{SpectBinningChapter}
 The mass-to-charge values and its corresponding intensities are retrieved as two separate numpy arrays from the mzML file and are sorted in parallel in a way that the m/z values are in ascending order, and every m/z value in the m/z array has its intensity stored in the intensity array on the exact same index.
 
-The process continues with what in the original comet implementation is referred to as "binning". A numpy array is created for storing the binned intensities, its size depending on the biggest m/z value in the m/z array and the bin size. E.g. if the Mass spectrum of the mzML scan contains 2000m/z as the highest m/z value, and the bin size of 0.02 is used, the bin array has a size of 2000/0.02 = 100.000, since this would be the highest bin index. This bin array is instantiated by the numpy function \textit{numpy.zeros}, which creates a numpy array filled with zeros.
+The process continues with what in the original Comet implementation is referred to as "binning". A numpy array is created for storing the binned intensities, its size depending on the biggest m/z value in the m/z array and the bin size. E.g. if the Mass spectrum of the mzML scan contains 2000m/z as the highest m/z value, and the bin size of 0.02 is used, the bin array has a size of 2000/0.02 = 100.000, since this would be the highest bin index. This bin array is instantiated by the numpy function \textit{numpy.zeros}, which creates a numpy array filled with zeros.
 
 Before filling up the created bin array with the intensities, square root calculation is applied on the entire intensity array.
- As previously described, the bin index of a m/z value is calculated by dividing the m/z by the bin width. The bin array is filled with the intensities from the intensity array on the calculated index. In case there are 2 intensities on the same index, like in the comet implementation, only the highest intensity is stored. Like in Comet, the binned experimental array is processed by dividing it into 10 equal sections, within these section normalization is performed by normalizing the values between 0 and 50.
+ As previously described, the bin index of a m/z value is calculated by dividing the m/z by the bin width. The bin array is filled with the intensities from the intensity array on the calculated index. In case there are 2 intensities on the same index, like in the Comet implementation, only the highest intensity is stored. Like in Comet, the binned experimental array is processed by dividing it into 10 equal sections, within these section normalization is performed by normalizing the values between 0 and 50.
 
-The program now proceeds with generating theoretical spectra by computing fragment m/z values for every peptide from the previously retrieved peptide index list slice with candidate peptides. This is done by a seperate \textit{fragments} function for every peptide in the slice which takes in the peptide as a string and the maximum charge of the selected precursor ion - 1 as the parameters. Like in the initial reference comet run, the maxcharge is limited to 3. The fragmentation function returns a list with m/z values, which is the theoretical spectrum of the candidate peptide, this list is binned the same way as the spectrum retrieved from the sample mzml file, except that this fragmentation m/z list has no corresponding list containing intensities. In this case the bin array index is calculated the same way, but on the index position the bin array is filled with a 50, and neighboring bins are filled with a value of 25. 
+The program now proceeds with generating theoretical spectra by computing fragment m/z values for every peptide from the previously retrieved peptide index list slice with candidate peptides. This is done by a seperate \textit{fragments} function for every peptide in the slice which takes in the peptide as a string and the maximum charge of the selected precursor ion - 1 as the parameters. Like in the initial reference Comet run, the maxcharge is limited to 3. The fragmentation function returns a list with m/z values, which is the theoretical spectrum of the candidate peptide, this list is binned the same way as the spectrum retrieved from the sample mzml file, except that this fragmentation m/z list has no corresponding list containing intensities. In this case the bin array index is calculated the same way, but on the index position the bin array is filled with a 50, and neighboring bins are filled with a value of 25. 
 
 \subsubsection{Peak intensity prediction with MS2PIP}
 In case the user of the tool decides to run the program with predicted spectra instead of the theoretical spectra, the program runs the \textit{predict\_spectrum} function on the peptides. 
@@ -305,8 +305,9 @@ The CLI additionally provides three options: The "--p" flag followed by an integ
 The user can get a help-text by typing "python xcorrcli.py --help" in the terminal, which contains the above mentioned information.
 
 \subsection{Comparison}
-To compare the execution times and identification of comet and this implementation, a small fasta database file was created, which contains the top 110 peptides that resulted in the best scores in the initial previously described comet run. Both versions of the Python program were run with the exact same parameters with a ssh remote connection on a virtual server in a data center.
+To compare the execution times and identification of Comet and this implementation, a small FASTA database file was created, which contains the top 110 peptides that resulted in the best scores in the initial previously described Comet run, this file is provided in the github repository (see \ref{documentation}). Both versions of the Python program were run with the exact same parameters with a ssh remote connection on a virtual server in a data center.
 An exemplary output of the Python program is shown in [\cref{fig:output}], sorted in descending order by xcorr scores.
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1\textwidth]{figs/output.png}
@@ -315,13 +316,13 @@ An exemplary output of the Python program is shown in [\cref{fig:output}], sorte
 \end{figure}
 
 \subsubsection{Identification comparison}
-Although the reimplemented Xcorr scores are not exactly matching with the scores of the original Comet implementation, it manages to compute scores that are very similar to the ones in Comet. This is demonstrated in [\cref{fig:scatterplot}]. The x-axis represents the scores produced by the Python program, the y-axis the scores of Comet. For this plot only the highest score was selected for every scan number, this was achieved by sorting the scores in descending order and applying the \textit{drop\_duplicates} function from the Pandas library. Inner join was then performed on both results by Pandas to create a list containing only one score entry for each method for each scan number. The \(R^2\) score is 0.9967, which was calculated by the sklearn function \textit{r2\_score}.
+Although the re-implemented Xcorr scores are not exactly matching with the scores of the original Comet implementation, it manages to compute scores that are very similar to the ones in Comet. This is demonstrated in [\cref{fig:scatterplot}]. The x-axis represents the scores produced by the Python program, the y-axis the scores of Comet. For this plot only the highest score was selected for every scan number, this was achieved by sorting the PSM results by scores in descending order and applying the \textit{drop\_duplicates} function from the Pandas library. Inner join was then performed on both results by Pandas to create a list containing only one score entry for each method for each scan number. The \(R^2\) score is 0.9967, which was calculated by the sklearn function \textit{r2\_score}.
 
-The scatter plot dots align mostly in a straight diagonal line, which demonstrates that the scores of the python Program are close to the scores of comet. 
+The scatter plot dots align mostly in a straight diagonal line, which demonstrates that the scores of the python Program are close to the scores of Comet. 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.8\textwidth]{figs/scatterplot.png}
-\caption{Scatterplot between the comet xcorrs and in Python replicated xcorrs. For each scan number in the results only the highest xcorr value was selected. \(R^2\) = 0.9967}
+\caption{Scatterplot between the Comet Xcorrs and in Python replicated Xcorrs. For each scan number in the results only the highest Xcorr value was selected. \(R^2\) = 0.9967}
 \label{fig:scatterplot}
 \end{figure}
 
@@ -341,7 +342,7 @@ Now that the scores generated by the Python program using theoretical spectra ar
    \caption{}
    \label{fig:scatterplot_windows}
 \end{subfigure}
-\caption{(a):Scatterplot between the scores using theoretical spectra and predicted spectra in the python reimplementation. For each scan number in the results only the highest xcorr value was selected[\cref{fig:output}]. The dot representing scan 130781 is marked red.}
+\caption{(a):Scatterplot between the scores using theoretical spectra and predicted spectra in the python re-implementation. For each scan number in the results only the highest xcorr value was selected[\cref{fig:output}]. The dot representing scan 130781 is marked red.}
 \label{scatterplot_python}
 \end{figure}
 An example for a good match is shown in [\cref{predandtheo}]. %This comparison was made without the window normalisation step described in section \ref{SpectBinningChapter}, and normalisation was performed over the entire m/z interval. 
@@ -443,7 +444,7 @@ The scan 71120 ranked first using theoretical spectrum matching mode, while with
 [\cref{fig:scan130781}] shows an example of a scan, where the matching with the predicted spectrum produced a more noticable score than with theoretical spectrum matching. The scan 130781 has ranked first using the HCD prediction model, whereas using theoretical spectra, this scan ranked 124th [\cref{fig:ident-comparison}]. In [\cref{fig:scatterplot_windows}] the dot that represents this scan is marked red. This dot deviates the most from the "correlation diagonal" in the positive direction.
 
 \subsubsection{Performance comparison}
-Early into the development it was clear that the speed of the Python reimplementation would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
+Early into the development it was clear that the speed of the Python re-implementation would be slower than the original C++ program. The main reason for this is the programming languages that were used. 
 
 Although Python might be considered a comfortable and faster language for development, it is a higher level language than C++. Python is an interpreted language, meaning that code is interpreted at run-time by an interpreter as an intermediate layer, which leads to additional overhead.
 
@@ -455,14 +456,14 @@ The difference in runtime optimization is a reason for the speed difference as w
 
 At this point it needs to be noted that Python was not selected as the programming language for the sake of execution speed, but because of compatibility with the MS2PIP peptide prediction tool, and for the reason of faster and easier prototyping.
 
-Comet uses a fast scoring algorithm for correlation calculation which has not been implemented in this python reimplementation, which is one of the reasons for the slower performance.
+Comet uses a fast scoring algorithm for correlation calculation which has not been implemented in this python re-implementation, which is one of the reasons for the slower performance.
 
-To detect the optimal amount of processes to use for a computation, the program was run in both theoretical and prediction modes at different amounts of processes, and the execution times were noted. For the prediction mode, multiple MS2PIP models were tested. The execution times are shown in [\cref{fig:speed-comparison}]. An issue with MS2PIP is that the funtions used from this module seem to starting processes by their own, and this multiprocessing cant be controlled by the user. Which results in a very high amount of processes in total and leads to many processes contending for computation time. The numpy library uses multithreading by default too. This means that running the Python program with too many pool processes will slow it down, which is also demonstrated in [\cref{fig:speed-comparison}]. The optimal amount of processes to use for the Python program is identified as 4 for the theoretical spectrum matching mode, whose execution time lies at 0:13:13. For the four tested prediction models the optimal amount of processes is identified as 3-4, exemplary, HCD and iTRAQ were run at different amounts of processes for this. Using more or less processes than 4 will not be beneficial for the execution speed. The speed of all prediction models, python theoretical spectrum matching and comet was compared at 4 processes.
+To detect the optimal amount of processes to use for a computation, the program was run in both theoretical and prediction modes at different amounts of processes, and the execution times were noted. For the prediction mode, multiple MS2PIP models were tested. The execution times are shown in [\cref{fig:speed-comparison}]. An issue with MS2PIP is that the funtions used from this module seem to starting processes by their own, and this multiprocessing cant be controlled by the user. Which results in a very high amount of processes in total and leads to many processes contending for computation time. The numpy library uses multithreading by default too. This means that running the Python program with too many pool processes will slow it down, which is also demonstrated in [\cref{fig:speed-comparison}]. The optimal amount of processes to use for the Python program is identified as 4 for the theoretical spectrum matching mode, whose execution time lies at 0:13:13. For the four tested prediction models the optimal amount of processes is identified as 3-4, exemplary, HCD and iTRAQ were run at different amounts of processes for this. Using more or less processes than 4 will not be beneficial for the execution speed. The speed of all prediction models, python theoretical spectrum matching and Comet was compared at 4 processes.
 
 \begin{figure}
 \centering
 \includegraphics[width=1\textwidth]{figs/speed-comparison.png}
-\caption{Computation speed comparison for comet and the python reimplementation in both modes.}
+\caption{Computation speed comparison for Comet and the python re-implementation in both modes.}
 \label{fig:speed-comparison}
 \end{figure}
 
@@ -470,40 +471,40 @@ To detect the optimal amount of processes to use for a computation, the program 
 
 \section{Discussion and Conclusion}
 \subsection{Evaluation}
-The comet Xcorr algorithm has been accurately reimplemented with all the parameters used in the reference Comet run and the reimplementation process has been precisely described in the Result section of this thesis. First, the FASTA data was loaded from which a peptide index list was generated. MzML data was then read, for each scan peptides were precisely filtered from the peptide index, for these peptides, theoretical spectra were generated, and correlation was computed between the binned experimental scan and theoretical spectra. The entire process was enhanced by multiprocessing. The Xcorrs of Comet and the Python reimplementation have been compared to each other in [\cref{fig:scatterplot}], which demonstrates the very high similarity between Comet and this Python reimplementation. This scatter plot also contains outliers which shows that some scores are not matching, the reason for the not exact matching is that comet has additional steps in preprocessing the binned spectra, and the Comet fast scoring algorithm which was not taken into account in this Python implementation. 
+The comet Xcorr algorithm has been accurately re-implemented with all the parameters used in the reference Comet run and the re-implementation process has been precisely described in the Result section of this thesis. First, the FASTA data was loaded from which a peptide index list was generated. MzML data was then read, for each scan peptides were precisely filtered from the peptide index, for these peptides, theoretical spectra were generated, and correlation was computed between the binned experimental scan and theoretical spectra. The entire process was enhanced by multiprocessing. The Xcorrs of Comet and the Python re-implementation have been compared to each other in [\cref{fig:scatterplot}], which demonstrates the very high similarity between Comet and this Python re-implementation. This scatter plot also contains outliers which shows that some scores are not matching, the reason for the not exact matching is that Comet has additional steps in preprocessing the binned spectra, and the Comet fast scoring algorithm which was not taken into account in this Python implementation. 
 
-The theoretical spectra have then been replaced by predicted spectra of MS2PIP, and the identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it has been shown that the reimplemented Python tool can detect peptides that are not detected by comet. [\cref{fig:scan130781}] shows that the theoretical spectrum peaks are missing/not matching some of the peaks of the experimental spectrum, while the peaks of the predicted spectrum are almost all matching the highest peaks of the experimental spectrum, and also having similar intensities. It has also been revealed that the m/z prediction of all tested MS2PIP models have a higher accuracy than theoretical spectra [\cref{fig:ratio_table}]. 
+The theoretical spectra have then been replaced by predicted spectra of MS2PIP, and the identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it has been shown that the re-implemented Python tool can detect peptides that are not detected by Comet. [\cref{fig:scan130781}] shows that the theoretical spectrum peaks are missing/not matching some of the peaks of the experimental spectrum, while the peaks of the predicted spectrum are almost all matching the highest peaks of the experimental spectrum, and also having similar intensities. It has also been revealed that the m/z prediction of all tested MS2PIP models have a higher accuracy than theoretical spectra [\cref{fig:ratio_table}]. 
 
 Although peptide spectrum prediction can often be more accurate than using a theoretical spectrum of a peptide for matching,
-it can have a drawback: Theoretical spectra are always correct for a given peptide, which means that given a peptide and a precursor charge state, an unambiguous theoretical spectrum can be generated. Peptide intensity prediction on the other hand, has a small chance of predicting the m/z values as well as the corresponding intensities wrong.
+it can have a drawback: Theoretical spectra are always correct for a given peptide, which means that given a peptide and a precursor charge state, an unambiguous theoretical spectrum can be generated. Peptide intensity prediction on the other hand, has a small chance of predicting the m/z values as well as the corresponding intensities wrong, as the correlation to the evaluation datasets of the MS2PIP model training data outputs is not entirely 1 \cite{ms2pip-3-13-0}.
 
-When comparing execution speed, it became apparent that the Python reimplementation is slower than the original C++ counterpart, especially with the prediction of peptide intensity. 
+When comparing execution speed, it became apparent that the Python re-implementation is slower than the original C++ counterpart, especially with the prediction of peptide intensity. 
 
 Considering the long execution time of a database search run with peptide prediction, but also its advantage of uncovering peptides not found with theoretical spectrum matching, a balanced approach can be taken and the scoring with peptide intensity prediction can be used for validation of a theoretical spectrum matching database search run. When a certain score threshold has been reached, the program can proceed to score with peptide prediction, and check whether the result is positive too.
 
 Since there is an obvious tradeoff between execution time and the accuracy of the Prediction models, this is a matter that has to be decided by the user.
 
 \subsection{Future Work}
-Concerning the scoring aspect, the scores have to be normalised in such a way that scores produced by theoretical spectrum matching are roughly the same as scores produced by predicted spectrum matching. This essentially means to achieve a higher correlation than in [\cref{fig:scatterplot_windows}].
-
-Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed. 
-
-Speed can also be greatly increased by implementing sparse arrays like they are used in comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
-
-It is neccessary to solve multiprocessing issues, the numpy library as well as the MS2PIP multiprocessing need to be configured in such a way that additional processes/threads are not created in an uncontrolled way. The more pool processes this implementation uses, the faster it should become.
+%Concerning the scoring aspect, the scores have to be normalized in such a way that scores produced by theoretical spectrum matching are roughly the same as scores produced by predicted spectrum matching. This essentially means to achieve a higher correlation than in [\cref{fig:scatterplot_windows}].
 
 Comet uses multiple scores to evaluate peptide matches, e.g. the e-value of the sp\_score , so one of the key points for future work is implementing more scores with the usage of predicted spectra as well.
 
-For the estimation of false positives comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place, and adding these reversed peptides to the search. False positive estimation like this can lead to better identification quality.
+For the estimation of false positives Comet has implemented decoy-search, this is done by reversing peptide sequences, keeping their N or C-Terminal amino acids in place, and adding these reversed peptides to the search. False positive estimation like this can lead to better identification quality.
 
 More modifications can be considered in the future, including N and C Terminal modifications.
 
-Since comet is highly parametrized and thus gives the user a high amount of flexibility with the program, more parameters need to be implemented in this program.
+Since Comet is highly parametrized and thus gives the user a high amount of flexibility with the program, more parameters need to be implemented in this program.
 
 Other prediction tools than MS2PIP can be made use of in the future with different algorithms.
 
-\subsection{Documentation}
-All source code is provided on \textbf{https://github.com/medbioinf/xcorr-reimplementation} , and for the description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, an HTML documentation with the sphinx tool is generated. The parameters, return types and exception raises are well documented.
+Regarding the speed factor of this implementation, it is necessary to implement the fast scoring array manipulation like it is used in Comet to increase execution speeed. 
+
+Speed can also be greatly increased by implementing sparse arrays like they are used in Comet. In this implementation, after the binning stage of either the theoretical, predicted or experimental spectra, the resulting binned arrays have a length of about 100.000, of which about 99\% values contain zeros. This is highly impractical and can significantly slow down the execution time of the program, considering that the calculation of correlation on these binned arrays has to be done hundred thousands of times in one program run.
+
+It is necessary to solve multiprocessing issues, the numpy library as well as the MS2PIP multiprocessing need to be configured in such a way that additional processes/threads are not created in an uncontrolled way. The more pool processes this implementation uses, the faster it should become.
+
+\subsection{Documentation} \label{documentation}
+All source code is provided on \textbf{https://github.com/medbioinf/xcorr-re-implementation} , and for the description of the functions and modules in the written code, the numpy styled documentation "numpydoc" was used. Based on this, an HTML documentation with the sphinx tool is generated. The parameters, return types and exception raises are well documented.
 
 \newpage
 
