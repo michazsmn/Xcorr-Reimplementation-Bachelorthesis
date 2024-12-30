@@ -429,14 +429,14 @@ The scan 71120 ranked first using theoretical spectrum matching mode, while with
 \begin{subfigure}[b]{1\textwidth}
 \centering
     \includegraphics[width=0.92\textwidth]{figs/scan_130781_ps=False_.png}
-   \caption{Plot of experimental processed spectrum (blue) and theoretical spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781}
+   \caption{Plot of experimental processed spectrum (blue) and theoretical spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781.}
    \label{fig:theo} 
 \end{subfigure}
 \begin{subfigure}[b]{1\textwidth}
 \centering
    \includegraphics[width=0.92
    \textwidth]{figs/scan_130781_ps=True_HCD.png}
-   \caption{Plot of experimental processed spectrum (blue) and predicted spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781}
+   \caption{Plot of experimental processed spectrum (blue) and predicted spectrum of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" (red) for scan 130781.}
    \label{fig:predict}
 \end{subfigure}
 \caption{Experimental and theoretical/predicted spectra of the peptide "AFLADPSAFVAAAPVAAATTAAPAAAAAPAK" for scan 130781. The x-axis represents the binned m/z array indices, the y-axis the intensities normalised between 0 and 50. Red colored spectra are represented negative only for visualization purposes.}
@@ -474,7 +474,7 @@ To detect the optimal amount of processes to use for a computation, the program 
 \subsection{Evaluation}
 The comet Xcorr algorithm has been accurately re-implemented with all the parameters used in the reference Comet run and the re-implementation process has been precisely described in the Result section of this thesis. First, the FASTA data was loaded from which a peptide index list was generated. MzML data was then read, for each scan peptides were precisely filtered from the peptide index, for these peptides, theoretical spectra were generated, and correlation was computed between the binned experimental scan and theoretical spectra. The entire process was enhanced by multiprocessing. The Xcorrs of Comet and the Python re-implementation have been compared to each other in [\cref{fig:scatterplot}], which demonstrates the very high similarity between Comet and this Python re-implementation. This scatter plot also contains outliers which shows that some scores are not matching, the reason for the not exact matching is that Comet has additional steps in preprocessing the binned spectra, and the Comet fast scoring algorithm which was not taken into account in this Python implementation. 
 
-The theoretical spectra have then been replaced by predicted spectra of MS2PIP, and the identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it has been shown that the re-implemented Python tool can detect peptides that are not detected by Comet. [\cref{fig:scan130781}] shows that the theoretical spectrum peaks are missing/not matching some of the peaks of the experimental spectrum, while the peaks of the predicted spectrum are almost all matching the highest peaks of the experimental spectrum, and also having similar intensities. It has also been revealed that the m/z prediction of all tested MS2PIP models have a higher accuracy than theoretical spectra [\cref{fig:ratio_table}]. 
+The theoretical spectra have then been replaced by predicted spectra of MS2PIP, and the identification of the use of theoretical spectra versus the use of predicted spectra have been compared, where it has been shown that the re-implemented Python tool can detect peptides that are not detected by Comet. [\cref{fig:scan130781}] shows that the theoretical spectrum peaks are missing/not matching some of the peaks of the experimental spectrum, while the tallest peaks of the predicted spectrum are almost all matching the highest peaks of the experimental spectrum, and also having similar intensities. 31 of the 60 produced peaks are matching a peak of the experimental spectrum, which is more than the half. It has also been revealed that the m/z prediction of all tested MS2PIP models have a higher accuracy than theoretical spectra [\cref{fig:ratio_table}]. 
 
 Although peptide spectrum prediction can often be more accurate than using a theoretical spectrum of a peptide for matching,
 it can have a drawback: Theoretical spectra are always correct for a given peptide, which means that given a peptide and a precursor charge state, an unambiguous theoretical spectrum can be generated. Peptide intensity prediction on the other hand, has a small chance of predicting the m/z values as well as the corresponding intensities wrong, as the correlation to the evaluation datasets of the MS2PIP model training data outputs is not entirely 1 \cite{ms2pip-3-13-0}.
